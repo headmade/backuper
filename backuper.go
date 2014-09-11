@@ -70,8 +70,8 @@ func BackupAction(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := agent.Backup(); err == nil {
-		client.Backup("123")
+	if err := client.Backup(agent.Backup()); err != nil {
+		log.Printf("Backup notification Error: %s", err)
 	}
 }
 

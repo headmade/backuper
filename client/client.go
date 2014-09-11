@@ -1,5 +1,7 @@
 package client
 
+import "github.com/headmade/backuper/backuper"
+
 type Client struct {
 	Url   string
 	Token string
@@ -19,7 +21,7 @@ func Get(url string) (*Client, error) {
 	return &Client{url, config.Token}, err
 }
 
-func (client *Client) Backup(backupId string) error {
+func (client *Client) Backup(backupResult *backuper.BackupResult) error {
 	return nil
 }
 

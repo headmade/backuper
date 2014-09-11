@@ -44,25 +44,33 @@ func InitAction(c *cli.Context) {
 	fmt.Println("Success! This server is ready to backup.")
 }
 
+func getAgentConfig(client *client.Client) (*agent.Config, error) {
+	var config *agent.Config
+	response, err := client.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(response, &config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
 func BackupAction(c *cli.Context) {
 	client, err := client.Get(BackendAddr())
-	if err == nil {
-		var config *agent.Config
-		var response []byte
-		response, err = client.GetConfig()
-		if err == nil {
-			err = json.Unmarshal(response, &config)
-			if err == nil {
-				agent.WriteConfig(config, agent.ConfigPath())
-			}
-		}
-		if err != nil {
-			config, err = agent.LoadConfig(agent.ConfigPath())
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(c.Command.Name, config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	config, err := getAgentConfig(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	agent, err := agent.Get(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := agent.Backup(); err == nil {
 		client.Backup("123")
 	}
 }

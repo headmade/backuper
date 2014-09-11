@@ -1,4 +1,4 @@
-package agent
+package client
 
 import (
 	"encoding/json"
@@ -9,9 +9,9 @@ type Config struct {
 	Token string
 }
 
-func ConfigPath() string {
+func configPath() string {
 	//return "/etc/backuper/agent.json"
-	return "/tmp/agent.json"
+	return "/tmp/client.json"
 }
 
 func LoadConfig(configPath string) (*Config, error) {

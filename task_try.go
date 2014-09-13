@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
-	"time"
 	"strconv"
-	"agent/tasks"
+	"time"
 
-	//"github.com/headmade/backuper/agent/tasks"
+	"github.com/headmade/backuper/agent/tasks"
 )
 
 func main() {
@@ -20,14 +19,14 @@ func main() {
 
 	for i, t := range types {
 		c := tasks.Config{Type: t, Id: strconv.Itoa(i), Params: map[string]string{
-			"tmp_path": "/tmp",
-			"pass": "123",
-			"dir": "/Users/relevv/git/hm/backuper",
-			"db_host": "localhost",
-			"db_port": "5432",
-      "db_user": "dev",
-			"db_pass": "123",
-			"db_name": "makerton_development",
+			"tmp_path":  "/tmp",
+			"pass":      "123",
+			"dir":       "/Users/relevv/git/hm/backuper",
+			"db_host":   "localhost",
+			"db_port":   "5432",
+			"db_user":   "dev",
+			"db_pass":   "123",
+			"db_name":   "makerton_development",
 			"db_tables": "",
 		}}
 		task, err := tasks.Get(&c)

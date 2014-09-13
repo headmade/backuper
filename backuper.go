@@ -15,7 +15,7 @@ import (
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
-		backend = "backuper.headmade.pro"
+		backend = "localhost:3000"
 	}
 	return backend
 }
@@ -25,7 +25,7 @@ func initServer(c *cli.Context) error {
 	if len(token) < 1 {
 		return errors.New("Invalid auth token")
 	}
-	err := client.InitServer(token)
+	err := client.InitServer(BackendAddr(), token)
 	return err
 }
 

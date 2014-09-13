@@ -2,7 +2,8 @@ package main
 
 import (
 	"log"
-	"agent/tasks"
+
+	"github.com/headmade/backuper/agent/tasks"
 )
 
 func main() {

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -13,7 +14,20 @@ func newBackupDirectoryTask(config *Config) TaskInterface {
 }
 
 func (self *backupDirectoryTask) Run() error {
+	self.PrepareTmpDirectory()
 	log.Println("run backupDirectoryTask")
-	return nil
+
+	cmd := fmt.Sprintf("tar --bzip -cf - -C %s . | %s >%s",
+		self.config.Params["dir"],
+		self.EncryptCmd(self.config.Params["pass"]),
+		self.tmpFilePath(),
+	)
+	log.Println(cmd)
+
+	out, err := self.System(cmd)
+	log.Println(string(out))
+
+	self.CleanupTmpDirectory()
+	return err
 }
 

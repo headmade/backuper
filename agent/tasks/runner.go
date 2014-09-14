@@ -1,11 +1,14 @@
 package tasks
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/headmade/backuper/backuper"
 )
@@ -37,11 +40,31 @@ func (runner *Runner) CleanupTmpDirectory() error {
 	return os.RemoveAll(runner.tmpDirPath())
 }
 
-func (self *backupTask) EncryptCmd(pass string) string {
-	return fmt.Sprintf(
-		"openssl aes-128-cbc -pass pass:%s",
-		pass,
+func (runner *Runner) backupFileName() string {
+	return strings.Join([]string{
+		"backup",
+		FileTimestamp(),
+	}, "_")
+}
+
+func (runner *Runner) encryptTmpFiles(fileNames []string) (backupFilePath string, err error) {
+
+	if len(fileNames) == 0 {
+		return "", errors.New("No files to encrypt")
+	}
+
+	backupFilePath = runner.tmpFilePath(runner.backupFileName())
+	cmd := fmt.Sprintf(
+		"tar -cf - -C %s %s | %s >%s",
+		runner.tmpDirPath(),
+		strings.Join(fileNames, " "),
+		EncryptCmd("PASS"),
+		backupFilePath,
 	)
+	log.Println(cmd)
+
+	_, err = System(cmd)
+	return backupFilePath, err
 }
 
 func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
@@ -51,25 +74,35 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 
 	err := runner.prepareTmpDirectory()
 
-	backupResult.Prepare = backuper.TmpDirResult{err, ""}
+	tmpDirPath := runner.tmpDirPath()
+	backupResult.Prepare = backuper.TmpDirResult{err, tmpDirPath}
 
-	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
+	len_configs := len(*configs)
+	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len_configs)
+	tmpFiles := make([]string, 0, len_configs)
 
 	for _, config := range *configs {
 		task, err := GetTask(&config)
 		if err == nil {
-			tmpFilePath := runner.tmpFilePath(task.tmpFileName())
+			tmpFileName := task.tmpFileName()
+			tmpFilePath := runner.tmpFilePath(tmpFileName)
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile(tmpFilePath)
+			if err == nil {
+				tmpFiles = append(tmpFiles, tmpFileName)
+			}
 			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{err, tmpFilePath, string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}
 	}
-	//backupFileName, err := encryptTmpFiles()
-	//backupResult.encrypt
+
+	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
+	backupResult.Encrypt = backuper.BackupFileResult{err,backupFileName}
+
 	//uploadBackup(backupFileName)
-	runner.CleanupTmpDirectory()
+	err = runner.CleanupTmpDirectory()
+	backupResult.Cleanup = backuper.TmpDirResult{err, tmpDirPath}
 	return
 }
 
@@ -77,3 +110,15 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 func System(cmd string) ([]byte, error) {
 	return exec.Command("sh", "-c", cmd).CombinedOutput()
 }
+
+func FileTimestamp() string {
+	return time.Now().Format("20060102_1504")
+}
+
+func EncryptCmd(pass string) string {
+	return fmt.Sprintf(
+		"openssl aes-128-cbc -pass pass:%s",
+		pass,
+	)
+}
+

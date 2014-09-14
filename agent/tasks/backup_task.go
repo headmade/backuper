@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"strings"
-	"time"
 
 	"github.com/headmade/backuper/backuper"
 )
@@ -25,7 +24,7 @@ func (self *backupTask) tmpFileName() string {
 	return strings.Join([]string{
 		self.config.Type,
 		self.config.Id,
-		time.Now().Format("20060102_1504"),
+		FileTimestamp(),
 	}, "_")
 }
 

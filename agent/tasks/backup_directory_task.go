@@ -16,9 +16,9 @@ func newBackupDirectoryTask(config *backuper.TaskConfig) BackupTaskInterface {
 }
 
 func (self *backupDirectoryTask) GenerateBackupFile(tmpFilePath string) ([]byte, error) {
-	cmd := fmt.Sprintf("tar --bzip -cf - -C %s . | %s >%s",
+	cmd := fmt.Sprintf(
+		"tar --bzip -cf - -C %s . >%s",
 		self.config.Params["dir"],
-		self.EncryptCmd(self.config.Params["pass"]),
 		tmpFilePath,
 	)
 	log.Println(cmd)

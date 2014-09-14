@@ -23,7 +23,7 @@ func RegisterBuilder(taskType string, taskBuilder BackupTaskBuilderFunc) {
 	newBackupTaskBuilders[taskType] = taskBuilder
 }
 
-func Get(config *backuper.TaskConfig) (task BackupTaskInterface, err error) {
+func GetTask(config *backuper.TaskConfig) (task BackupTaskInterface, err error) {
 	taskBuilder := newBackupTaskBuilders[config.Type]
 	if taskBuilder != nil {
 		task = taskBuilder(config)

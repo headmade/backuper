@@ -56,7 +56,7 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
 
 	for _, config := range *configs {
-		task, err := Get(&config)
+		task, err := GetTask(&config)
 		if err == nil {
 			tmpFilePath := runner.tmpFilePath(task.tmpFileName())
 			log.Printf("task type: %s, task object: %#v", config.Type, task)

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -36,18 +37,23 @@ func Get(backendAddr string) (*Client, error) {
 }
 
 func (client *Client) Backup(backupResult *backuper.BackupResult) error {
-	return nil
+	json, err := json.Marshal(backupResult)
+	response, err := http.Post("http://"+client.Url+"/backend/Backup?token="+client.Token, "application/json", bytes.NewBuffer(json))
+	if err == nil && response.StatusCode != 200 {
+		err = errors.New(response.Status)
+	}
+	return err
 }
 
 func (client *Client) GetConfig() ([]byte, error) {
 	response := []byte{}
 	resp, err := http.Get("http://" + client.Url + "/backend/GetConfig?token=" + client.Token)
-	defer resp.Body.Close()
 	if err == nil {
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			return response, errors.New(resp.Status)
 		}
 		response, err = ioutil.ReadAll(resp.Body)
 	}
-	return response, nil
+	return response, err
 }

@@ -28,7 +28,7 @@ func main() {
 				"db_port":   "5432",
 				"db_user":   "dev",
 				"db_pass":   "123",
-				"db_name":   "makerton_development",
+				"db_base":   "makerton_development",
 				"db_tables": "",
 			},
 		}

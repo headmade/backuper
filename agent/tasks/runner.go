@@ -82,7 +82,7 @@ func (runner *Runner) encryptTmpFiles(fileNames []string) (backupFilePath string
 
 	backupFilePath = runner.tmpFilePath(runner.backupFileName())
 	cmd := fmt.Sprintf(
-		"tar -cf - -C %s %s | %s >%s",
+		"tar --bzip -cf - -C %s %s | %s >%s",
 		runner.tmpDirPath(),
 		strings.Join(fileNames, " "),
 		EncryptCmd("PASS"),

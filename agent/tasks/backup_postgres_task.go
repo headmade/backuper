@@ -28,7 +28,7 @@ func (self *backupPostgresTask) GenerateBackupFile(tmpFilePath string) ([]byte, 
 		self.config.Params["db_host"],
 		self.config.Params["db_port"],
 		self.config.Params["db_user"],
-		self.config.Params["db_name"],
+		self.config.Params["db_base"],
 		tables,
 		tmpFilePath,
 	)

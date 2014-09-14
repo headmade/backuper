@@ -159,7 +159,6 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	err = runner.CleanupTmpDirectory()
 	backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath)
 
-	time.Sleep(10000 * time.Millisecond)
 	return
 }
 

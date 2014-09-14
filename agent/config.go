@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	Token string
+	Token  string
 	TmpDir string
 }
 

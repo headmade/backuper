@@ -14,26 +14,26 @@ type Runner struct {
 }
 
 type backupTaskResult struct {
-	err error
-	file string
+	err    error
+	file   string
 	output string
 }
 
 type tmpDirResult struct {
-	err error
+	err    error
 	tmpDir string
 }
 
 type backupFileResult struct {
-	err error
+	err        error
 	backupFile string
 }
 
 type BackupResult struct {
 	Prepare tmpDirResult
-	Backup []backupTaskResult
+	Backup  []backupTaskResult
 	Encrypt backupFileResult
-	Upload backupFileResult
+	Upload  backupFileResult
 	Cleanup tmpDirResult
 }
 
@@ -59,15 +59,14 @@ func (runner *Runner) CleanupTmpDirectory() error {
 	return os.RemoveAll(runner.tmpDirPath())
 }
 
-
 func (self *backupTask) EncryptCmd(pass string) string {
 	return fmt.Sprintf(
 		"openssl aes-128-cbc -pass pass:%s",
-	  pass,
+		pass,
 	)
 }
 
-func (runner *Runner) Run(configs *[]*Config) (res *BackupResult){
+func (runner *Runner) Run(configs *[]*Config) (res *BackupResult) {
 
 	res = &BackupResult{}
 
@@ -75,14 +74,14 @@ func (runner *Runner) Run(configs *[]*Config) (res *BackupResult){
 
 	res.Prepare = tmpDirResult{err, ""}
 
-  res.Backup = make([]backupTaskResult, 0, len(*configs))
+	res.Backup = make([]backupTaskResult, 0, len(*configs))
 
 	for _, config := range *configs {
 		task, err := Get(config)
 		if err == nil {
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile()
-			res.Backup = append(res.Backup, backupTaskResult{err,runner.tmpFilePath(task),string(out)})
+			res.Backup = append(res.Backup, backupTaskResult{err, runner.tmpFilePath(task), string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}
@@ -98,4 +97,3 @@ func (runner *Runner) Run(configs *[]*Config) (res *BackupResult){
 func System(cmd string) ([]byte, error) {
 	return exec.Command("sh", "-c", cmd).CombinedOutput()
 }
-

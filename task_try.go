@@ -19,22 +19,21 @@ func main() {
 	for i, t := range types {
 		configs[i] = &tasks.Config{
 			Type: t,
-			Id: strconv.Itoa(i),
+			Id:   strconv.Itoa(i),
 			Params: map[string]string{
-				"tmp_path": "/tmp",
-				"pass": "123",
-				"dir": "/etc/openssl",
-				"db_host": "localhost",
-				"db_port": "5432",
-				"db_user": "dev",
-				"db_pass": "123",
-				"db_name": "makerton_development",
+				"tmp_path":  "/tmp",
+				"pass":      "123",
+				"dir":       "/etc/openssl",
+				"db_host":   "localhost",
+				"db_port":   "5432",
+				"db_user":   "dev",
+				"db_pass":   "123",
+				"db_name":   "makerton_development",
 				"db_tables": "",
 			},
 		}
 	}
 
 	r := tasks.NewRunner(&agent.Config{TmpDir: "/tmp"})
-  r.Run(&configs)
+	r.Run(&configs)
 }
-

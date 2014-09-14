@@ -35,4 +35,3 @@ func (self *backupPostgresTask) GenerateBackupFile() ([]byte, error) {
 
 	return System(cmd)
 }
-

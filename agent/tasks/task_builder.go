@@ -1,20 +1,20 @@
 package tasks
 
 import (
-  "errors"
+	"errors"
 )
 
 const (
-	DIR_TASK_TYPE = "directory"
+	DIR_TASK_TYPE      = "directory"
 	POSTGRES_TASK_TYPE = "postgres"
-	MYSQL_TASK_TYPE = "mysql"
+	MYSQL_TASK_TYPE    = "mysql"
 )
 
-type BackupTaskBuilderFunc (func(*Config)BackupTaskInterface)
+type BackupTaskBuilderFunc (func(*Config) BackupTaskInterface)
 
 var newBackupTaskBuilders = map[string]BackupTaskBuilderFunc{
-  DIR_TASK_TYPE: newBackupDirectoryTask,
-  POSTGRES_TASK_TYPE: newBackupPostgresTask,
+	DIR_TASK_TYPE:      newBackupDirectoryTask,
+	POSTGRES_TASK_TYPE: newBackupPostgresTask,
 }
 
 func RegisterBuilder(taskType string, taskBuilder BackupTaskBuilderFunc) {
@@ -31,4 +31,3 @@ func Get(config *Config) (task BackupTaskInterface, err error) {
 
 	return task, err
 }
-

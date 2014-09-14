@@ -23,4 +23,3 @@ func (self *backupDirectoryTask) GenerateBackupFile() ([]byte, error) {
 
 	return System(cmd)
 }
-

@@ -17,7 +17,7 @@ import (
 type Runner struct {
 	agentConfig *backuper.AgentConfig
 	timestamp   string
-	lockfile   lockfile.Lockfile
+	lockfile    lockfile.Lockfile
 }
 
 func NewRunner(config *backuper.AgentConfig) *Runner {
@@ -106,7 +106,7 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	err := runner.prepareTmpDirectory()
 
 	tmpDirPath := runner.tmpDirPath()
-	backupResult.Prepare = backuper.PathResult{err, tmpDirPath}
+	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath)
 
 	if err != nil {
 		log.Println("ERR: prepare:", err.Error())
@@ -115,7 +115,7 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 
 	pidFilePath := runner.pidFilePath()
 	err = runner.lockPidFile(pidFilePath)
-	backupResult.Lock = backuper.PathResult{err, pidFilePath}
+	backupResult.Lock = backuper.NewPathResult(err, pidFilePath)
 
 	if err != nil {
 		log.Println("ERR: lock:", err.Error())
@@ -136,14 +136,14 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 			if err == nil {
 				tmpFiles = append(tmpFiles, tmpFileName)
 			}
-			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{backuper.PathResult{err, tmpFilePath}, string(out)})
+			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{backuper.NewPathResult(err, tmpFilePath), string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}
 	}
 
 	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
-	backupResult.Encrypt = backuper.PathResult{err, backupFileName}
+	backupResult.Encrypt = backuper.NewPathResult(err, backupFileName)
 
 	if err != nil {
 		log.Println("ERR: encrypt:", err.Error())
@@ -151,13 +151,13 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	}
 
 	err = runner.uploadBackupFile(backupFileName)
-	backupResult.Upload = backuper.PathResult{err, backupFileName}
+	backupResult.Upload = backuper.NewPathResult(err, backupFileName)
 
 	//err = runner.unlockPidFile()
-	backupResult.Unlock = backuper.PathResult{err, pidFilePath}
+	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath)
 
 	err = runner.CleanupTmpDirectory()
-	backupResult.Cleanup = backuper.PathResult{err, tmpDirPath}
+	backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath)
 
 	time.Sleep(10000 * time.Millisecond)
 	return

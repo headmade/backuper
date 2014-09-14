@@ -3,19 +3,20 @@ package agent
 import (
 	"log"
 
+	"github.com/headmade/backuper/agent/tasks"
 	"github.com/headmade/backuper/backuper"
 )
 
 type Agent struct {
-	Config *Config
+	Config *backuper.AgentConfig
 }
 
-func Get(config *Config) (*Agent, error) {
-	config.TmpDir = "/tmp"
+func Get(config *backuper.AgentConfig) (*Agent, error) {
 	return &Agent{config}, nil
 }
 
 func (agent *Agent) Backup() *backuper.BackupResult {
 	log.Println("agent.Backup")
-	return &backuper.BackupResult{}
+	runner := tasks.NewRunner(agent.Config)
+	return runner.Run()
 }

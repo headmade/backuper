@@ -3,13 +3,15 @@ package tasks
 import (
 	"fmt"
 	"log"
+
+	"github.com/headmade/backuper/backuper"
 )
 
 type backupDirectoryTask struct {
 	*backupTask
 }
 
-func newBackupDirectoryTask(config *Config) BackupTaskInterface {
+func newBackupDirectoryTask(config *backuper.TaskConfig) BackupTaskInterface {
 	return &backupDirectoryTask{newBackupTask(config)}
 }
 

@@ -1,5 +1,18 @@
 package backuper
 
+type AgentConfig struct {
+	Token  string
+	TmpDir string
+	Tasks  []TaskConfig
+}
+
+type TaskConfig struct {
+	Id     string
+	Type   string
+	Name   string
+	Params map[string]string
+}
+
 type BackupResult struct {
 	Prepare TmpDirResult
 	Backup  []BackupTaskResult
@@ -23,4 +36,3 @@ type BackupFileResult struct {
 	Err        error
 	BackupFile string
 }
-

@@ -9,6 +9,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/headmade/backuper/agent"
+	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/client"
 )
 
@@ -44,8 +45,8 @@ func InitAction(c *cli.Context) {
 	fmt.Println("Success! This server is ready to backup.")
 }
 
-func getAgentConfig(client *client.Client) (*agent.Config, error) {
-	var config *agent.Config
+func getAgentConfig(client *client.Client) (*backuper.AgentConfig, error) {
+	var config *backuper.AgentConfig
 	response, err := client.GetConfig()
 	if err != nil {
 		return nil, err

@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/headmade/backuper/backuper"
 )
 
 type BackupTaskInterface interface {
@@ -12,11 +14,11 @@ type BackupTaskInterface interface {
 }
 
 type backupTask struct {
-	config            *Config
+	config            *backuper.TaskConfig
 	tmpFilePathCached string
 }
 
-func newBackupTask(config *Config) *backupTask {
+func newBackupTask(config *backuper.TaskConfig) *backupTask {
 	return &backupTask{config, ""}
 }
 

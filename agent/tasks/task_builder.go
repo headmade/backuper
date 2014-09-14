@@ -2,6 +2,8 @@ package tasks
 
 import (
 	"errors"
+
+	"github.com/headmade/backuper/backuper"
 )
 
 const (
@@ -10,7 +12,7 @@ const (
 	MYSQL_TASK_TYPE    = "mysql"
 )
 
-type BackupTaskBuilderFunc (func(*Config) BackupTaskInterface)
+type BackupTaskBuilderFunc (func(*backuper.TaskConfig) BackupTaskInterface)
 
 var newBackupTaskBuilders = map[string]BackupTaskBuilderFunc{
 	DIR_TASK_TYPE:      newBackupDirectoryTask,
@@ -21,7 +23,7 @@ func RegisterBuilder(taskType string, taskBuilder BackupTaskBuilderFunc) {
 	newBackupTaskBuilders[taskType] = taskBuilder
 }
 
-func Get(config *Config) (task BackupTaskInterface, err error) {
+func Get(config *backuper.TaskConfig) (task BackupTaskInterface, err error) {
 	taskBuilder := newBackupTaskBuilders[config.Type]
 	if taskBuilder != nil {
 		task = taskBuilder(config)

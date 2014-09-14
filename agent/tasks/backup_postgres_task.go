@@ -3,13 +3,15 @@ package tasks
 import (
 	"fmt"
 	"log"
+
+	"github.com/headmade/backuper/backuper"
 )
 
 type backupPostgresTask struct {
 	*backupTask
 }
 
-func newBackupPostgresTask(config *Config) BackupTaskInterface {
+func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
 	return &backupPostgresTask{newBackupTask(config)}
 }
 

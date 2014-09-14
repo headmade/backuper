@@ -7,14 +7,13 @@ import (
 	"os/exec"
 
 	"github.com/headmade/backuper/backuper"
-	"github.com/headmade/backuper/agent"
 )
 
 type Runner struct {
-	agentConfig *agent.Config
+	agentConfig *backuper.AgentConfig
 }
 
-func NewRunner(config *agent.Config) *Runner {
+func NewRunner(config *backuper.AgentConfig) *Runner {
 	return &Runner{agentConfig: config}
 }
 
@@ -43,7 +42,8 @@ func (self *backupTask) EncryptCmd(pass string) string {
 	)
 }
 
-func (runner *Runner) Run(configs *[]*Config) (res *backuper.BackupResult) {
+func (runner *Runner) Run() (res *backuper.BackupResult) {
+	configs := &runner.agentConfig.Tasks
 
 	res = &backuper.BackupResult{}
 
@@ -54,7 +54,7 @@ func (runner *Runner) Run(configs *[]*Config) (res *backuper.BackupResult) {
 	res.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
 
 	for _, config := range *configs {
-		task, err := Get(config)
+		task, err := Get(&config)
 		if err == nil {
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile()

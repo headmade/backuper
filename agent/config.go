@@ -3,25 +3,22 @@ package agent
 import (
 	"encoding/json"
 	"io/ioutil"
-)
 
-type Config struct {
-	Token  string
-	TmpDir string
-}
+	"github.com/headmade/backuper/backuper"
+)
 
 func ConfigPath() string {
 	//return "/etc/backuper/agent.json"
 	return "/tmp/agent.json"
 }
 
-func LoadConfig(configPath string) (*Config, error) {
+func LoadConfig(configPath string) (*backuper.AgentConfig, error) {
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
 
-	var config Config
+	var config backuper.AgentConfig
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
@@ -29,7 +26,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	return &config, nil
 }
 
-func WriteConfig(c *Config, configPath string) error {
+func WriteConfig(c *backuper.AgentConfig, configPath string) error {
 	data, err := json.Marshal(c)
 	if err != nil {
 		return err

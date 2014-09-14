@@ -44,16 +44,16 @@ func (self *backupTask) EncryptCmd(pass string) string {
 	)
 }
 
-func (runner *Runner) Run() (res *backuper.BackupResult) {
+func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	configs := &runner.agentConfig.Tasks
 
-	res = &backuper.BackupResult{}
+	backupResult = &backuper.BackupResult{}
 
 	err := runner.prepareTmpDirectory()
 
-	res.Prepare = backuper.TmpDirResult{err, ""}
+	backupResult.Prepare = backuper.TmpDirResult{err, ""}
 
-	res.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
+	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
 
 	for _, config := range *configs {
 		task, err := Get(&config)
@@ -61,13 +61,13 @@ func (runner *Runner) Run() (res *backuper.BackupResult) {
 			tmpFilePath := runner.tmpFilePath(task.tmpFileName())
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile(tmpFilePath)
-			res.Backup = append(res.Backup, backuper.BackupTaskResult{err, tmpFilePath, string(out)})
+			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{err, tmpFilePath, string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}
 	}
 	//backupFileName, err := encryptTmpFiles()
-	//res.encrypt
+	//backupResult.encrypt
 	//uploadBackup(backupFileName)
 	runner.CleanupTmpDirectory()
 	return

@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/headmade/backuper/backuper"
+	"github.com/nightlyone/lockfile"
 )
 
 type Runner struct {
 	agentConfig *backuper.AgentConfig
 	timestamp   string
+	lockfile   lockfile.Lockfile
 }
 
 func NewRunner(config *backuper.AgentConfig) *Runner {
@@ -36,6 +38,23 @@ func (runner *Runner) tmpFilePath(tmpFileName string) string {
 func (runner *Runner) prepareTmpDirectory() error {
 	log.Println("prepareTmpDirectory():", runner.tmpDirPath())
 	return os.MkdirAll(runner.tmpDirPath(), 0700)
+}
+
+func (runner *Runner) pidFilePath() string {
+	return runner.tmpFilePath("backuper.pid")
+}
+
+func (runner *Runner) lockPidFile(pidFilePath string) (err error) {
+	log.Println("lockPidFile():", pidFilePath)
+	runner.lockfile, err = lockfile.New(pidFilePath)
+	if err == nil {
+		err = runner.lockfile.TryLock()
+	}
+	return
+}
+
+func (runner *Runner) unlockPidFile() error {
+	return runner.lockfile.Unlock()
 }
 
 func (runner *Runner) CleanupTmpDirectory() error {
@@ -87,7 +106,21 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	err := runner.prepareTmpDirectory()
 
 	tmpDirPath := runner.tmpDirPath()
-	backupResult.Prepare = backuper.TmpDirResult{err, tmpDirPath}
+	backupResult.Prepare = backuper.PathResult{err, tmpDirPath}
+
+	if err != nil {
+		log.Println("ERR: prepare:", err.Error())
+		return
+	}
+
+	pidFilePath := runner.pidFilePath()
+	err = runner.lockPidFile(pidFilePath)
+	backupResult.Lock = backuper.PathResult{err, pidFilePath}
+
+	if err != nil {
+		log.Println("ERR: lock:", err.Error())
+		return
+	}
 
 	len_configs := len(*configs)
 	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len_configs)
@@ -103,20 +136,30 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 			if err == nil {
 				tmpFiles = append(tmpFiles, tmpFileName)
 			}
-			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{err, tmpFilePath, string(out)})
+			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{backuper.PathResult{err, tmpFilePath}, string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}
 	}
 
 	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
-	backupResult.Encrypt = backuper.BackupFileResult{err, backupFileName}
+	backupResult.Encrypt = backuper.PathResult{err, backupFileName}
+
+	if err != nil {
+		log.Println("ERR: encrypt:", err.Error())
+		return
+	}
 
 	err = runner.uploadBackupFile(backupFileName)
-	backupResult.Upload = backuper.BackupFileResult{err, backupFileName}
+	backupResult.Upload = backuper.PathResult{err, backupFileName}
+
+	//err = runner.unlockPidFile()
+	backupResult.Unlock = backuper.PathResult{err, pidFilePath}
 
 	err = runner.CleanupTmpDirectory()
-	backupResult.Cleanup = backuper.TmpDirResult{err, tmpDirPath}
+	backupResult.Cleanup = backuper.PathResult{err, tmpDirPath}
+
+	time.Sleep(10000 * time.Millisecond)
 	return
 }
 

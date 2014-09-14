@@ -14,25 +14,22 @@ type TaskConfig struct {
 }
 
 type BackupResult struct {
-	Prepare TmpDirResult
+	Prepare PathResult
+	Lock    PathResult
 	Backup  []BackupTaskResult
-	Encrypt BackupFileResult
-	Upload  BackupFileResult
-	Cleanup TmpDirResult
+	Encrypt PathResult
+	Upload  PathResult
+	Unlock  PathResult
+	Cleanup PathResult
+}
+
+type PathResult struct {
+	Err    error
+	Path string
 }
 
 type BackupTaskResult struct {
-	Err    error
-	File   string
+	PathResult
 	Output string
 }
 
-type TmpDirResult struct {
-	Err    error
-	TmpDir string
-}
-
-type BackupFileResult struct {
-	Err        error
-	BackupFile string
-}

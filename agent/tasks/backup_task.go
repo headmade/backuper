@@ -27,4 +27,3 @@ func (self *backupTask) tmpFileName() string {
 		FileTimestamp(),
 	}, "_")
 }
-

@@ -98,7 +98,7 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	}
 
 	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
-	backupResult.Encrypt = backuper.BackupFileResult{err,backupFileName}
+	backupResult.Encrypt = backuper.BackupFileResult{err, backupFileName}
 
 	//uploadBackup(backupFileName)
 	err = runner.CleanupTmpDirectory()
@@ -121,4 +121,3 @@ func EncryptCmd(pass string) string {
 		pass,
 	)
 }
-

@@ -15,7 +15,7 @@ func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
 	return &backupPostgresTask{newBackupTask(config)}
 }
 
-func (self *backupPostgresTask) GenerateBackupFile() ([]byte, error) {
+func (self *backupPostgresTask) GenerateBackupFile(tmpFilePath string) ([]byte, error) {
 
 	tables := self.config.Params["db_tables"]
 
@@ -31,7 +31,7 @@ func (self *backupPostgresTask) GenerateBackupFile() ([]byte, error) {
 		self.config.Params["db_name"],
 		tables,
 		self.EncryptCmd(self.config.Params["pass"]),
-		self.tmpFilePath(),
+		tmpFilePath,
 	)
 	log.Println(cmd)
 

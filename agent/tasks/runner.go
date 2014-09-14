@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/headmade/backuper/backuper"
 )
@@ -21,8 +22,8 @@ func (runner *Runner) tmpDirPath() string {
 	return runner.agentConfig.TmpDir + "/backuper/"
 }
 
-func (runner *Runner) tmpFilePath(task BackupTaskInterface) string {
-	return runner.tmpDirPath() + "/" + task.tmpFileName()
+func (runner *Runner) tmpFilePath(tmpFileName string) string {
+	return filepath.Join(runner.tmpDirPath(), tmpFileName)
 }
 
 func (runner *Runner) prepareTmpDirectory() error {
@@ -32,6 +33,7 @@ func (runner *Runner) prepareTmpDirectory() error {
 
 func (runner *Runner) CleanupTmpDirectory() error {
 	log.Println("cleanupTmpDirectory():", runner.tmpDirPath())
+	return nil
 	return os.RemoveAll(runner.tmpDirPath())
 }
 
@@ -56,9 +58,10 @@ func (runner *Runner) Run() (res *backuper.BackupResult) {
 	for _, config := range *configs {
 		task, err := Get(&config)
 		if err == nil {
+			tmpFilePath := runner.tmpFilePath(task.tmpFileName())
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
-			out, err := task.GenerateBackupFile()
-			res.Backup = append(res.Backup, backuper.BackupTaskResult{err, runner.tmpFilePath(task), string(out)})
+			out, err := task.GenerateBackupFile(tmpFilePath)
+			res.Backup = append(res.Backup, backuper.BackupTaskResult{err, tmpFilePath, string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}

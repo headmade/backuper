@@ -1,7 +1,6 @@
 package tasks
 
 import (
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 )
 
 type BackupTaskInterface interface {
-	GenerateBackupFile() ([]byte, error)
+	GenerateBackupFile(string) ([]byte, error)
 	tmpFileName() string
 }
 
@@ -22,10 +21,6 @@ func newBackupTask(config *backuper.TaskConfig) *backupTask {
 	return &backupTask{config, ""}
 }
 
-func (self *backupTask) tmpDirPath() string {
-	return self.config.Params["tmp_path"]
-}
-
 func (self *backupTask) tmpFileName() string {
 	return strings.Join([]string{
 		self.config.Type,
@@ -34,9 +29,3 @@ func (self *backupTask) tmpFileName() string {
 	}, "_")
 }
 
-func (self *backupTask) tmpFilePath() string {
-	if len(self.tmpFilePathCached) == 0 {
-		self.tmpFilePathCached = filepath.Join(self.tmpDirPath(), self.tmpFileName())
-	}
-	return self.tmpFilePathCached
-}

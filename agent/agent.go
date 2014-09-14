@@ -11,6 +11,7 @@ type Agent struct {
 }
 
 func Get(config *Config) (*Agent, error) {
+	config.TmpDir = "/tmp"
 	return &Agent{config}, nil
 }
 

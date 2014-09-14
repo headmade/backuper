@@ -6,35 +6,12 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/agent"
 )
 
 type Runner struct {
 	agentConfig *agent.Config
-}
-
-type backupTaskResult struct {
-	err    error
-	file   string
-	output string
-}
-
-type tmpDirResult struct {
-	err    error
-	tmpDir string
-}
-
-type backupFileResult struct {
-	err        error
-	backupFile string
-}
-
-type BackupResult struct {
-	Prepare tmpDirResult
-	Backup  []backupTaskResult
-	Encrypt backupFileResult
-	Upload  backupFileResult
-	Cleanup tmpDirResult
 }
 
 func NewRunner(config *agent.Config) *Runner {
@@ -66,22 +43,22 @@ func (self *backupTask) EncryptCmd(pass string) string {
 	)
 }
 
-func (runner *Runner) Run(configs *[]*Config) (res *BackupResult) {
+func (runner *Runner) Run(configs *[]*Config) (res *backuper.BackupResult) {
 
-	res = &BackupResult{}
+	res = &backuper.BackupResult{}
 
 	err := runner.prepareTmpDirectory()
 
-	res.Prepare = tmpDirResult{err, ""}
+	res.Prepare = backuper.TmpDirResult{err, ""}
 
-	res.Backup = make([]backupTaskResult, 0, len(*configs))
+	res.Backup = make([]backuper.BackupTaskResult, 0, len(*configs))
 
 	for _, config := range *configs {
 		task, err := Get(config)
 		if err == nil {
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile()
-			res.Backup = append(res.Backup, backupTaskResult{err, runner.tmpFilePath(task), string(out)})
+			res.Backup = append(res.Backup, backuper.BackupTaskResult{err, runner.tmpFilePath(task), string(out)})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
 		}

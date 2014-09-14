@@ -17,8 +17,8 @@ type Client struct {
 
 func InitServer(backendAddr, token string) error {
 	resp, err := http.Get("http://" + backendAddr + "/backend/InitServer?token=" + token)
-	defer resp.Body.Close()
 	if err == nil {
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			return errors.New(resp.Status)
 		}

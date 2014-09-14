@@ -9,14 +9,11 @@ type backupDirectoryTask struct {
 	*backupTask
 }
 
-func newBackupDirectoryTask(config *Config) TaskInterface {
+func newBackupDirectoryTask(config *Config) BackupTaskInterface {
 	return &backupDirectoryTask{newBackupTask(config)}
 }
 
-func (self *backupDirectoryTask) Run() error {
-	self.PrepareTmpDirectory()
-	log.Println("run backupDirectoryTask")
-
+func (self *backupDirectoryTask) GenerateBackupFile() ([]byte, error) {
 	cmd := fmt.Sprintf("tar --bzip -cf - -C %s . | %s >%s",
 		self.config.Params["dir"],
 		self.EncryptCmd(self.config.Params["pass"]),
@@ -24,10 +21,6 @@ func (self *backupDirectoryTask) Run() error {
 	)
 	log.Println(cmd)
 
-	out, err := self.System(cmd)
-	log.Println(string(out))
-
-	self.CleanupTmpDirectory()
-	return err
+	return System(cmd)
 }
 

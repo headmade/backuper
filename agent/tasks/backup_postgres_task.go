@@ -9,13 +9,11 @@ type backupPostgresTask struct {
 	*backupTask
 }
 
-func newBackupPostgresTask(config *Config) TaskInterface {
+func newBackupPostgresTask(config *Config) BackupTaskInterface {
 	return &backupPostgresTask{newBackupTask(config)}
 }
 
-func (self *backupPostgresTask) Run() error {
-	log.Println("run backupPostgresTask")
-	self.PrepareTmpDirectory()
+func (self *backupPostgresTask) GenerateBackupFile() ([]byte, error) {
 
 	tables := self.config.Params["db_tables"]
 
@@ -35,10 +33,6 @@ func (self *backupPostgresTask) Run() error {
 	)
 	log.Println(cmd)
 
-	out, err := self.System(cmd)
-	log.Println(string(out))
-	self.CleanupTmpDirectory()
-
-	return err
+	return System(cmd)
 }
 

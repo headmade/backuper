@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	Token string
+	TmpDir string
 }
 
 func ConfigPath() string {

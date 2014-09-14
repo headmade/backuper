@@ -10,19 +10,19 @@ const (
 	MYSQL_TASK_TYPE = "mysql"
 )
 
-type TaskBuilderFunc (func(*Config)TaskInterface)
+type BackupTaskBuilderFunc (func(*Config)BackupTaskInterface)
 
-var newTaskBuilders = map[string]TaskBuilderFunc{
+var newBackupTaskBuilders = map[string]BackupTaskBuilderFunc{
   DIR_TASK_TYPE: newBackupDirectoryTask,
   POSTGRES_TASK_TYPE: newBackupPostgresTask,
 }
 
-func RegisterBuilder(taskType string, taskBuilder TaskBuilderFunc) {
-	newTaskBuilders[taskType] = taskBuilder
+func RegisterBuilder(taskType string, taskBuilder BackupTaskBuilderFunc) {
+	newBackupTaskBuilders[taskType] = taskBuilder
 }
 
-func Get(config *Config) (task TaskInterface, err error) {
-	taskBuilder := newTaskBuilders[config.Type]
+func Get(config *Config) (task BackupTaskInterface, err error) {
+	taskBuilder := newBackupTaskBuilders[config.Type]
 	if taskBuilder != nil {
 		task = taskBuilder(config)
 	} else {

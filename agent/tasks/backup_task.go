@@ -12,18 +12,16 @@ type BackupTaskInterface interface {
 }
 
 type backupTask struct {
-	config            *backuper.TaskConfig
-	tmpFilePathCached string
+	config *backuper.TaskConfig
 }
 
 func newBackupTask(config *backuper.TaskConfig) *backupTask {
-	return &backupTask{config, ""}
+	return &backupTask{config}
 }
 
 func (self *backupTask) tmpFileName() string {
 	return strings.Join([]string{
 		self.config.Type,
 		self.config.Id,
-		FileTimestamp(),
 	}, "_")
 }

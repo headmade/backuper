@@ -15,10 +15,14 @@ import (
 
 type Runner struct {
 	agentConfig *backuper.AgentConfig
+	timestamp   string
 }
 
 func NewRunner(config *backuper.AgentConfig) *Runner {
-	return &Runner{agentConfig: config}
+	return &Runner{
+		agentConfig: config,
+		timestamp:   time.Now().Format("20060102_1504"),
+	}
 }
 
 func (runner *Runner) tmpDirPath() string {
@@ -41,9 +45,13 @@ func (runner *Runner) CleanupTmpDirectory() error {
 }
 
 func (runner *Runner) backupFileName() string {
+	return runner.appendTimestamp("backup")
+}
+
+func (runner *Runner) appendTimestamp(str string) string {
 	return strings.Join([]string{
-		"backup",
-		FileTimestamp(),
+		str,
+		runner.timestamp,
 	}, "_")
 }
 
@@ -67,6 +75,10 @@ func (runner *Runner) encryptTmpFiles(fileNames []string) (backupFilePath string
 	return backupFilePath, err
 }
 
+func (runner *Runner) uploadBackupFile(nackupFileName string) error {
+	return nil
+}
+
 func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	configs := &runner.agentConfig.Tasks
 
@@ -84,7 +96,7 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	for _, config := range *configs {
 		task, err := GetTask(&config)
 		if err == nil {
-			tmpFileName := task.tmpFileName()
+			tmpFileName := runner.appendTimestamp(task.tmpFileName())
 			tmpFilePath := runner.tmpFilePath(tmpFileName)
 			log.Printf("task type: %s, task object: %#v", config.Type, task)
 			out, err := task.GenerateBackupFile(tmpFilePath)
@@ -100,7 +112,9 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
 	backupResult.Encrypt = backuper.BackupFileResult{err, backupFileName}
 
-	//uploadBackup(backupFileName)
+	err = runner.uploadBackupFile(backupFileName)
+	backupResult.Upload = backuper.BackupFileResult{err, backupFileName}
+
 	err = runner.CleanupTmpDirectory()
 	backupResult.Cleanup = backuper.TmpDirResult{err, tmpDirPath}
 	return
@@ -109,10 +123,6 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 // TODO: move to some utils
 func System(cmd string) ([]byte, error) {
 	return exec.Command("sh", "-c", cmd).CombinedOutput()
-}
-
-func FileTimestamp() string {
-	return time.Now().Format("20060102_1504")
 }
 
 func EncryptCmd(pass string) string {

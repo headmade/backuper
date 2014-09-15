@@ -15,7 +15,7 @@ func Get(config *backuper.AgentConfig) (*Agent, error) {
 	return &Agent{config}, nil
 }
 
-func (agent *Agent) Backup() *backuper.BackupResult {
+func (agent *Agent) Backup() (error, *backuper.BackupResult) {
 	log.Println("agent.Backup")
 	runner := tasks.NewRunner(agent.Config)
 	return runner.Run()

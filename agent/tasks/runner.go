@@ -74,17 +74,21 @@ func (runner *Runner) appendTimestamp(str string) string {
 	}, "_")
 }
 
-func (runner *Runner) encryptTmpFiles(fileNames []string) (backupFilePath string, err error) {
+func (runner *Runner) encryptAndUpload(filesToUpload []string) (backupFilePath string, err error) {
 
-	if len(fileNames) == 0 {
-		return "", errors.New("No files to encrypt")
+	if len(filesToUpload) == 0 {
+		return "", errors.New("No files to upload")
+	}
+
+	tarOptionsList := make([]string, 0, 3*len(filesToUpload))
+	for _, path := range filesToUpload {
+		tarOptionsList = append(tarOptionsList, "-C", filepath.Dir(path), filepath.Base(path))
 	}
 
 	backupFilePath = runner.tmpFilePath(runner.backupFileName())
 	cmd := fmt.Sprintf(
-		"tar --bzip -cf - -C %s %s | %s >%s",
-		runner.tmpDirPath(),
-		strings.Join(fileNames, " "),
+		"tar --bzip -cf - %s | %s >%s",
+		strings.Join(tarOptionsList, " "),
 		EncryptCmd("PASS"),
 		backupFilePath,
 	)
@@ -94,16 +98,41 @@ func (runner *Runner) encryptTmpFiles(fileNames []string) (backupFilePath string
 	return backupFilePath, err
 }
 
-func (runner *Runner) uploadBackupFile(nackupFileName string) error {
+func (runner *Runner) uploadBackupFile(backupFileName string) error {
 	return nil
 }
 
-func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
+func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.BackupTaskResult) {
+
+	results = make([]backuper.BackupTaskResult, 0, len(*configs))
+
+	for _, config := range *configs {
+		task, err := GetTask(&config)
+		if err == nil {
+			tmpFileName := runner.appendTimestamp(task.tmpFileName())
+			tmpFilePath := runner.tmpFilePath(tmpFileName)
+
+			// GenerateBackupFile() can change tmpFilePath to suite its needs
+			tmpFilePath, out, err := task.GenerateBackupFile(tmpFilePath)
+
+			results = append(results, backuper.BackupTaskResult{
+				PathResult: backuper.NewPathResult(err, tmpFilePath),
+				TaskId: config.Id,
+				Output: string(out),
+			})
+		} else {
+			log.Printf("task type: %s, no registered handler found", config.Type)
+		}
+	}
+	return
+}
+
+func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	configs := &runner.agentConfig.Tasks
 
 	backupResult = &backuper.BackupResult{}
 
-	err := runner.prepareTmpDirectory()
+	err = runner.prepareTmpDirectory()
 
 	tmpDirPath := runner.tmpDirPath()
 	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath)
@@ -122,36 +151,30 @@ func (runner *Runner) Run() (backupResult *backuper.BackupResult) {
 		return
 	}
 
-	len_configs := len(*configs)
-	backupResult.Backup = make([]backuper.BackupTaskResult, 0, len_configs)
-	tmpFiles := make([]string, 0, len_configs)
+	//backupResult.Backup = make([]backuper.BackupTaskResult, 0, len_configs)
 
-	for _, config := range *configs {
-		task, err := GetTask(&config)
-		if err == nil {
-			tmpFileName := runner.appendTimestamp(task.tmpFileName())
-			tmpFilePath := runner.tmpFilePath(tmpFileName)
-			log.Printf("task type: %s, task object: %#v", config.Type, task)
-			out, err := task.GenerateBackupFile(tmpFilePath)
-			if err == nil {
-				tmpFiles = append(tmpFiles, tmpFileName)
-			}
-			backupResult.Backup = append(backupResult.Backup, backuper.BackupTaskResult{backuper.NewPathResult(err, tmpFilePath), string(out)})
-		} else {
-			log.Printf("task type: %s, no registered handler found", config.Type)
+	backupResult.Backup = runner.runTasks(configs)
+
+	filesToUpload := make([]string, 0, len(*configs))
+	for _, result := range backupResult.Backup {
+		if len(result.Err) == 0 {
+		  filesToUpload = append(filesToUpload, result.Path)
 		}
 	}
 
-	backupFileName, err := runner.encryptTmpFiles(tmpFiles)
-	backupResult.Encrypt = backuper.NewPathResult(err, backupFileName)
+	log.Printf("%#v", backupResult.Backup)
+
+	runner.encryptAndUpload(filesToUpload)
+	//backupFileName, err := runner.encryptTmpFiles(tmpFiles)
+	//backupResult.Encrypt = backuper.NewPathResult(err, backupFileName)
 
 	if err != nil {
 		log.Println("ERR: encrypt:", err.Error())
 		return
 	}
 
-	err = runner.uploadBackupFile(backupFileName)
-	backupResult.Upload = backuper.NewPathResult(err, backupFileName)
+	//err = runner.uploadBackupFile(backupFileName)
+	//backupResult.Upload = backuper.NewPathResult(err, backupFileName)
 
 	//err = runner.unlockPidFile()
 	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath)

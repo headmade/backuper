@@ -30,6 +30,7 @@ type PathResult struct {
 
 type BackupTaskResult struct {
 	PathResult
+	TaskId string
 	Output string
 }
 

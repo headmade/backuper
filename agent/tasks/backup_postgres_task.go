@@ -15,7 +15,7 @@ func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
 	return &backupPostgresTask{newBackupTask(config)}
 }
 
-func (self *backupPostgresTask) GenerateBackupFile(tmpFilePath string) ([]byte, error) {
+func (self *backupPostgresTask) GenerateBackupFile(tmpFilePath string) (string, []byte, error) {
 
 	tables := self.config.Params["db_tables"]
 
@@ -34,5 +34,7 @@ func (self *backupPostgresTask) GenerateBackupFile(tmpFilePath string) ([]byte, 
 	)
 	log.Println(cmd)
 
-	return System(cmd)
+	out, lastErr := System(cmd)
+	return tmpFilePath, out, lastErr
 }
+

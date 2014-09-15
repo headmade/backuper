@@ -7,7 +7,7 @@ import (
 )
 
 type BackupTaskInterface interface {
-	GenerateBackupFile(string) ([]byte, error)
+	GenerateBackupFile(string) (string, []byte, error)
 	tmpFileName() string
 }
 

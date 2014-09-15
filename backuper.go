@@ -13,6 +13,10 @@ import (
 	"github.com/headmade/backuper/client"
 )
 
+const (
+	Version = "0.0.1"
+)
+
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
@@ -82,7 +86,7 @@ func BackupAction(c *cli.Context) {
 
 func main() {
 	app := cli.NewApp()
-	//app.Version = Version
+	app.Version = Version
 	app.Name = "backuper"
 	app.Author = "Headmade LLC"
 	app.Email = "backuper@headmade.pro"

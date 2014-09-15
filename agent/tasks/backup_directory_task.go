@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"os"
 	"github.com/headmade/backuper/backuper"
 )
 
@@ -13,7 +14,11 @@ func newBackupDirectoryTask(config *backuper.TaskConfig) BackupTaskInterface {
 }
 
 func (self *backupDirectoryTask) GenerateBackupFile(tmpFilePath string) (string, []byte, error) {
-	// TODO: validate that dir exists
-	return self.config.Params["dir"], []byte{}, nil
+	path := self.config.Params["path"]
+	file, err := os.Open(path)
+	if err == nil {
+		err = file.Close()
+	}
+	return path, []byte{}, err
 }
 

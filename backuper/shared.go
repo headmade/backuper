@@ -26,18 +26,19 @@ type BackupResult struct {
 type PathResult struct {
 	Err  string
 	Path string
+	Output string
 }
 
 type BackupTaskResult struct {
 	PathResult
 	TaskId string
-	Output string
 }
 
-func NewPathResult(err error, path string) (res PathResult) {
-	res.Path = path
+func NewPathResult(err error, path, output string) (result PathResult) {
+	result.Path = path
+	result.Output = output
 	if err != nil {
-		res.Err = err.Error()
+		result.Err = err.Error()
 	}
 	return
 }

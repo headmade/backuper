@@ -74,10 +74,21 @@ func (runner *Runner) appendTimestamp(str string) string {
 	}, "_")
 }
 
-func (runner *Runner) encryptAndUpload(filesToUpload []string) (backupFilePath string, err error) {
+func (runner *Runner) formatDstPath(path string) string {
+	hostname, _ := os.Hostname()
+	return ReplaceVars(
+		path,
+		map[string]string{
+			"$server_name": hostname,
+			"$timestamp": runner.timestamp,
+		},
+  )
+}
+
+func (runner *Runner) encryptAndUpload(filesToUpload []string) (uploadedPath, output string, err error) {
 
 	if len(filesToUpload) == 0 {
-		return "", errors.New("No files to upload")
+		return "", "", errors.New("No files to upload")
 	}
 
 	tarOptionsList := make([]string, 0, 3*len(filesToUpload))
@@ -85,17 +96,20 @@ func (runner *Runner) encryptAndUpload(filesToUpload []string) (backupFilePath s
 		tarOptionsList = append(tarOptionsList, "-C", filepath.Dir(path), filepath.Base(path))
 	}
 
-	backupFilePath = runner.tmpFilePath(runner.backupFileName())
+	uploadedPath = runner.formatDstPath("backup/$server_name/$timestamp")
+
 	cmd := fmt.Sprintf(
-		"tar --bzip -cf - %s | %s >%s",
+		"tar --bzip -cf - %s | %s | gof3r put -b %s -k %s",
 		strings.Join(tarOptionsList, " "),
 		EncryptCmd("PASS"),
-		backupFilePath,
+		"headmade",
+		uploadedPath,
 	)
 	log.Println(cmd)
 
-	_, err = System(cmd)
-	return backupFilePath, err
+	bytes, err := System(cmd)
+	output = string(bytes)
+	return
 }
 
 func (runner *Runner) uploadBackupFile(backupFileName string) error {
@@ -116,9 +130,8 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 			tmpFilePath, out, err := task.GenerateBackupFile(tmpFilePath)
 
 			results = append(results, backuper.BackupTaskResult{
-				PathResult: backuper.NewPathResult(err, tmpFilePath),
+				PathResult: backuper.NewPathResult(err, tmpFilePath, string(out)),
 				TaskId: config.Id,
-				Output: string(out),
 			})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
@@ -135,7 +148,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	err = runner.prepareTmpDir()
 
 	tmpDirPath := runner.tmpDirPath()
-	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath)
+	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath, "")
 
 	if err != nil {
 		log.Println("ERR: prepare:", err.Error())
@@ -144,14 +157,12 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	pidFilePath := runner.pidFilePath()
 	err = runner.lockPidFile(pidFilePath)
-	backupResult.Lock = backuper.NewPathResult(err, pidFilePath)
+	backupResult.Lock = backuper.NewPathResult(err, pidFilePath, "")
 
 	if err != nil {
 		log.Println("ERR: lock:", err.Error())
 		return
 	}
-
-	//backupResult.Backup = make([]backuper.BackupTaskResult, 0, len_configs)
 
 	backupResult.Backup = runner.runTasks(configs)
 
@@ -162,25 +173,20 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 		}
 	}
 
-	log.Printf("%#v", backupResult.Backup)
-
-	runner.encryptAndUpload(filesToUpload)
-	//backupFileName, err := runner.encryptTmpFiles(tmpFiles)
-	//backupResult.Encrypt = backuper.NewPathResult(err, backupFileName)
+	uploadedPath, output, err := runner.encryptAndUpload(filesToUpload)
+	backupResult.Encrypt = backuper.NewPathResult(err, uploadedPath, string(output))
 
 	if err != nil {
 		log.Println("ERR: encrypt:", err.Error())
 		return
 	}
 
-	//err = runner.uploadBackupFile(backupFileName)
-	//backupResult.Upload = backuper.NewPathResult(err, backupFileName)
-
+	// TODO: remember to uncomment the unlock()!
 	//err = runner.unlockPidFile()
-	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath)
+	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath, "")
 
 	err = runner.CleanupTmpDir()
-	backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath)
+	backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath, "")
 
 	return
 }
@@ -196,3 +202,10 @@ func EncryptCmd(pass string) string {
 		pass,
 	)
 }
+func ReplaceVars(str string, replacements map[string]string) string {
+	for from, to := range replacements {
+		str = strings.Replace(str, from, to, -1)
+	}
+	return str
+}
+

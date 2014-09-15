@@ -13,8 +13,8 @@ func newBackupLocalTask(config *backuper.TaskConfig) BackupTaskInterface {
 	return &backupLocalTask{newBackupTask(config)}
 }
 
-func (self *backupLocalTask) GenerateBackupFile(tmpFilePath string) (string, []byte, error) {
-	path := self.config.Params["path"]
+func (localTask *backupLocalTask) GenerateBackupFile(tmpFilePath string) (string, []byte, error) {
+	path := localTask.config.Params["path"]
 	file, err := os.Open(path)
 	if err == nil {
 		err = file.Close()

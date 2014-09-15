@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	DIR_TASK_TYPE      = "directory"
+	LOCAL_TASK_TYPE    = "local"
 	POSTGRES_TASK_TYPE = "postgres"
 	MYSQL_TASK_TYPE    = "mysql"
 )
@@ -15,7 +15,7 @@ const (
 type BackupTaskBuilderFunc (func(*backuper.TaskConfig) BackupTaskInterface)
 
 var newBackupTaskBuilders = map[string]BackupTaskBuilderFunc{
-	DIR_TASK_TYPE:      newBackupDirectoryTask,
+	LOCAL_TASK_TYPE:    newBackupLocalTask,
 	POSTGRES_TASK_TYPE: newBackupPostgresTask,
 }
 

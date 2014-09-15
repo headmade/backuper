@@ -35,8 +35,8 @@ func (runner *Runner) tmpFilePath(tmpFileName string) string {
 	return filepath.Join(runner.tmpDirPath(), tmpFileName)
 }
 
-func (runner *Runner) prepareTmpDirectory() error {
-	log.Println("prepareTmpDirectory():", runner.tmpDirPath())
+func (runner *Runner) prepareTmpDir() error {
+	log.Println("prepareTmpDir():", runner.tmpDirPath())
 	return os.MkdirAll(runner.tmpDirPath(), 0700)
 }
 
@@ -57,8 +57,8 @@ func (runner *Runner) unlockPidFile() error {
 	return runner.lockfile.Unlock()
 }
 
-func (runner *Runner) CleanupTmpDirectory() error {
-	log.Println("cleanupTmpDirectory():", runner.tmpDirPath())
+func (runner *Runner) CleanupTmpDir() error {
+	log.Println("cleanupTmpLocal():", runner.tmpDirPath())
 	return nil
 	return os.RemoveAll(runner.tmpDirPath())
 }
@@ -132,7 +132,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	backupResult = &backuper.BackupResult{}
 
-	err = runner.prepareTmpDirectory()
+	err = runner.prepareTmpDir()
 
 	tmpDirPath := runner.tmpDirPath()
 	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath)
@@ -179,7 +179,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	//err = runner.unlockPidFile()
 	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath)
 
-	err = runner.CleanupTmpDirectory()
+	err = runner.CleanupTmpDir()
 	backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath)
 
 	return

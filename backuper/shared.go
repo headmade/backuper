@@ -1,9 +1,21 @@
 package backuper
 
 type AgentConfig struct {
-	Token  string       `json:"token"`
-	TmpDir string       `json:"tmp_dir"`
-	Tasks  []TaskConfig `json:"tasks"`
+	Destination Destination  `json:"destination"`
+	TmpDir      string       `json:"tmp_dir"`
+	Tasks       []TaskConfig `json:"tasks"`
+	Period      Period       `json:"period"`
+}
+
+type Period struct {
+	Type       string   `json:"type"`
+	Time       string   `json:"time"`
+	DaysOfWeek []string `json:"days_of_week"`
+}
+
+type Destination struct {
+	Type   string            `json:"type"`
+	Params map[string]string `json:"params"`
 }
 
 type TaskConfig struct {

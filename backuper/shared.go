@@ -1,16 +1,16 @@
 package backuper
 
 type AgentConfig struct {
-	Token  string
-	TmpDir string
-	Tasks  []TaskConfig
+	Token  string       `json:"token"`
+	TmpDir string       `json:"tmp_dir"`
+	Tasks  []TaskConfig `json:"tasks"`
 }
 
 type TaskConfig struct {
-	Id     string
-	Type   string
-	Name   string
-	Params map[string]string
+	Id     string            `json:"id"`
+	Type   string            `json:"type"`
+	Name   string            `json:"name"`
+	Params map[string]string `json:"params"`
 }
 
 type BackupResult struct {
@@ -24,8 +24,8 @@ type BackupResult struct {
 }
 
 type PathResult struct {
-	Err  string
-	Path string
+	Err    string
+	Path   string
 	Output string
 }
 

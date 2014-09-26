@@ -1,5 +1,9 @@
 package backuper
 
+import (
+	"time"
+)
+
 type AgentConfig struct {
 	Destination Destination  `json:"destination"`
 	TmpDir      string       `json:"tmp_dir"`
@@ -25,13 +29,17 @@ type TaskConfig struct {
 }
 
 type BackupResult struct {
-	Prepare PathResult
-	Lock    PathResult
-	Backup  []BackupTaskResult
-	Encrypt PathResult
-	Upload  PathResult
-	Unlock  PathResult
-	Cleanup PathResult
+	Prepare   PathResult
+	Lock      PathResult
+	Backup    []BackupTaskResult
+	Encrypt   PathResult
+	Upload    PathResult
+	Unlock    PathResult
+	Cleanup   PathResult
+	BeginTime time.Time
+	EndTime   time.Time
+	Size      int64
+	Status    string
 }
 
 type PathResult struct {

@@ -22,6 +22,5 @@ func newBackupTask(config *backuper.TaskConfig) *backupTask {
 func (self *backupTask) tmpFileName() string {
 	return strings.Join([]string{
 		self.config.Type,
-		self.config.Id,
 	}, "_")
 }

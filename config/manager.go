@@ -15,8 +15,6 @@ type Config struct {
 
 func New() (*Config, error) {
 	config, err := loadConfig()
-	if err != nil {
-	}
 	return config, err
 }
 

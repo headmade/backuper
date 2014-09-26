@@ -80,9 +80,9 @@ func (runner *Runner) formatDstPath(path string) string {
 		path,
 		map[string]string{
 			"$server_name": hostname,
-			"$timestamp": runner.timestamp,
+			"$timestamp":   runner.timestamp,
 		},
-  )
+	)
 }
 
 func (runner *Runner) encryptAndUpload(filesToUpload []string) (uploadedPath, output string, err error) {
@@ -131,7 +131,6 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 
 			results = append(results, backuper.BackupTaskResult{
 				PathResult: backuper.NewPathResult(err, tmpFilePath, string(out)),
-				TaskId: config.Id,
 			})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
@@ -169,7 +168,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	filesToUpload := make([]string, 0, len(*configs))
 	for _, result := range backupResult.Backup {
 		if len(result.Err) == 0 {
-		  filesToUpload = append(filesToUpload, result.Path)
+			filesToUpload = append(filesToUpload, result.Path)
 		}
 	}
 
@@ -208,4 +207,3 @@ func ReplaceVars(str string, replacements map[string]string) string {
 	}
 	return str
 }
-

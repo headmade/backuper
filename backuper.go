@@ -11,6 +11,7 @@ import (
 	"github.com/headmade/backuper/agent"
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/client"
+	"github.com/headmade/backuper/config"
 )
 
 const (
@@ -49,29 +50,37 @@ func InitAction(c *cli.Context) {
 	fmt.Println("Success! This server is ready to backup.")
 }
 
-func getAgentConfig(client *client.Client) (*backuper.AgentConfig, error) {
-	var config *backuper.AgentConfig
-	response, err := client.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(response, &config)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-func BackupAction(c *cli.Context) {
+func CheckAction(c *cli.Context) {
 	client, err := client.Get(BackendAddr())
 	if err != nil {
 		log.Fatal(err)
 	}
-	config, err := getAgentConfig(client)
+	var agentConfig *backuper.AgentConfig
+	response, err := client.GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	agent, err := agent.Get(config)
+	err = json.Unmarshal(response, &agentConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	conf, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	conf.Write(agentConfig)
+}
+
+func BackupAction(c *cli.Context) {
+	conf, err := config.New()
+	if err != nil {
+		log.Fatal("This server is not ready to backup. Please exec 'backuper init'")
+	}
+	client, err := client.Get(BackendAddr())
+	if err != nil {
+		log.Fatal(err)
+	}
+	agent, err := agent.Get(conf.Agent)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,6 +110,11 @@ func main() {
 			Name:   "backup",
 			Usage:  "Make a backup",
 			Action: BackupAction,
+		},
+		{
+			Name:   "check",
+			Usage:  "Check server change",
+			Action: CheckAction,
 		},
 	}
 	app.Run(os.Args)

@@ -19,7 +19,6 @@ type Destination struct {
 }
 
 type TaskConfig struct {
-	Id     string            `json:"id"`
 	Type   string            `json:"type"`
 	Name   string            `json:"name"`
 	Params map[string]string `json:"params"`

@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Client *backuper.ClientConfig
 	Agent  *backuper.AgentConfig
+	Local  bool
 }
 
 func New() (*Config, error) {
@@ -26,7 +27,7 @@ func configPath() string {
 func (c *Config) Write(value interface{}) error {
 
 	switch reflect.ValueOf(value).Type() {
-	case reflect.ValueOf(&backuper.AgentConfig{}).Type():
+	case reflect.TypeOf(&backuper.AgentConfig{}):
 		c.Agent = value.(*backuper.AgentConfig)
 	case reflect.TypeOf(&backuper.ClientConfig{}):
 		c.Client = value.(*backuper.ClientConfig)

@@ -44,13 +44,24 @@ func CheckUid(commandName string) {
 
 func InitAction(c *cli.Context) {
 	CheckUid(c.Command.Name)
-	if err := initServer(c); err != nil {
-		log.Fatal(err)
+	if c.Args().First() == "local" {
+		// conf := config.Config{Local: true}
+		conf, _ := config.New()
+		conf.Local = true
+		conf.Write(true)
+	} else {
+		if err := initServer(c); err != nil {
+			log.Fatal(err)
+		}
 	}
 	fmt.Println("Success! This server is ready to backup.")
 }
 
 func CheckAction(c *cli.Context) {
+	conf, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 	client, err := client.Get(BackendAddr())
 	if err != nil {
 		log.Fatal(err)
@@ -64,10 +75,6 @@ func CheckAction(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	conf, err := config.New()
-	if err != nil {
-		log.Fatal(err)
-	}
 	conf.Write(agentConfig)
 }
 
@@ -75,10 +82,6 @@ func BackupAction(c *cli.Context) {
 	conf, err := config.New()
 	if err != nil {
 		log.Fatal("This server is not ready to backup. Please exec 'backuper init'")
-	}
-	client, err := client.Get(BackendAddr())
-	if err != nil {
-		log.Fatal(err)
 	}
 	agent, err := agent.Get(conf.Agent)
 	if err != nil {
@@ -88,8 +91,15 @@ func BackupAction(c *cli.Context) {
 	if lastErr != nil {
 		// do smth clever or useful, or both
 	}
-	if err := client.Backup(result); err != nil {
-		log.Printf("Backup notification Error: %s", err)
+
+	if !conf.Local {
+		client, err := client.Get(BackendAddr())
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := client.Backup(result); err != nil {
+			log.Printf("Backup notification Error: %s", err)
+		}
 	}
 }
 

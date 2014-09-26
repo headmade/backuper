@@ -11,6 +11,10 @@ type AgentConfig struct {
 	Period      Period       `json:"period"`
 }
 
+type ClientConfig struct {
+	Token string
+}
+
 type Period struct {
 	Type       string   `json:"type"`
 	Time       string   `json:"time"`

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/headmade/backuper/backuper"
+	"github.com/headmade/backuper/config"
 )
 
 type Client struct {
@@ -22,18 +23,19 @@ func InitServer(backendAddr, token string) error {
 		if resp.StatusCode != 200 {
 			return errors.New(resp.Status)
 		}
-		var config Config
+		var clientConfig backuper.ClientConfig
 		body, err := ioutil.ReadAll(resp.Body)
-		if err = json.Unmarshal(body, &config); err == nil {
-			err = WriteConfig(&config, configPath())
+		if err = json.Unmarshal(body, &clientConfig); err == nil {
+			conf := &config.Config{}
+			err = conf.Write(&clientConfig)
 		}
 	}
 	return err
 }
 
 func Get(backendAddr string) (*Client, error) {
-	config, err := LoadConfig(configPath())
-	return &Client{backendAddr, config.Token}, err
+	conf, err := config.New()
+	return &Client{backendAddr, conf.Client.Token}, err
 }
 
 func (client *Client) Backup(backupResult *backuper.BackupResult) error {

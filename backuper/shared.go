@@ -5,6 +5,7 @@ import (
 )
 
 type AgentConfig struct {
+	StartNow    bool         `json:"start_now"`
 	Destination Destination  `json:"destination"`
 	TmpDir      string       `json:"tmp_dir"`
 	Tasks       []TaskConfig `json:"tasks"`

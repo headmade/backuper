@@ -76,6 +76,12 @@ func CheckAction(c *cli.Context) {
 		log.Fatal(err)
 	}
 	conf.Write(agentConfig)
+	if conf.Agent.StartNow {
+		log.Println("StartNow")
+		BackupAction(c)
+		conf.Agent.StartNow = !conf.Agent.StartNow
+		conf.Write(agentConfig)
+	}
 }
 
 func BackupAction(c *cli.Context) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -67,15 +66,12 @@ func CheckAction(c *cli.Context) {
 		log.Fatal(err)
 	}
 	var agentConfig *backuper.AgentConfig
-	response, err := client.GetConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.Unmarshal(response, &agentConfig)
+	err = client.GetConfig(&agentConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 	conf.Write(agentConfig)
+
 	if conf.Agent.StartNow {
 		log.Println("StartNow")
 		BackupAction(c)

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -16,19 +18,46 @@ type Client struct {
 	Token string
 }
 
-func InitServer(backendAddr, token string) error {
-	resp, err := http.Get("http://" + backendAddr + "/backend/InitServer?token=" + token)
-	if err == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode != 200 {
-			return errors.New(resp.Status)
+func (client *Client) request(method string, action string, o interface{}, params ...interface{}) error {
+	var bodyReader io.Reader
+	var req *http.Request
+	var httpClient = &http.Client{}
+	uri := fmt.Sprintf("http://%s/backend/%s?token=%s", client.Url, action, client.Token)
+	if len(params) > 0 {
+		json, err := json.Marshal(params[0])
+		if err != nil {
+			return err
 		}
-		var clientConfig backuper.ClientConfig
+		req, _ = http.NewRequest(method, uri, bytes.NewBuffer(json))
+		req.Header.Add("Content-Type", "application/json")
+	} else {
+		req, _ = http.NewRequest(method, uri, bodyReader)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return errors.New(resp.Status)
+	}
+	if o != nil {
 		body, err := ioutil.ReadAll(resp.Body)
-		if err = json.Unmarshal(body, &clientConfig); err == nil {
-			conf := &config.Config{}
-			err = conf.Write(&clientConfig)
+		if err != nil {
+			return err
 		}
+		if err = json.Unmarshal(body, o); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func InitServer(backendAddr, token string) (err error) {
+	var clientConfig backuper.ClientConfig
+	client := Client{backendAddr, token}
+	if err = client.request("GET", "InitServer", &clientConfig); err == nil {
+		conf := &config.Config{}
+		err = conf.Write(&clientConfig)
 	}
 	return err
 }
@@ -39,23 +68,11 @@ func Get(backendAddr string) (*Client, error) {
 }
 
 func (client *Client) Backup(backupResult *backuper.BackupResult) error {
-	json, err := json.Marshal(backupResult)
-	response, err := http.Post("http://"+client.Url+"/backend/Backup?token="+client.Token, "application/json", bytes.NewBuffer(json))
-	if err == nil && response.StatusCode != 200 {
-		err = errors.New(response.Status)
-	}
+	err := client.request("POST", "Backup", nil, backupResult)
 	return err
 }
 
-func (client *Client) GetConfig() ([]byte, error) {
-	response := []byte{}
-	resp, err := http.Get("http://" + client.Url + "/backend/GetConfig?token=" + client.Token)
-	if err == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode != 200 {
-			return response, errors.New(resp.Status)
-		}
-		response, err = ioutil.ReadAll(resp.Body)
-	}
-	return response, err
+func (client *Client) GetConfig(o interface{}) error {
+	err := client.request("GET", "GetConfig", o)
+	return err
 }

@@ -20,7 +20,7 @@ const (
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
-		backend = "localhost:3000"
+		backend = "api.backuper.headmade.pro"
 	}
 	return backend
 }

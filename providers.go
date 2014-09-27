@@ -31,6 +31,9 @@ func providerAction(name string, providerConfig config.Provider) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if conf.Secret == nil {
+		conf.Secret = config.Providers{}
+	}
 	conf.Secret[name] = providerConfig
 	conf.Write(conf.Secret)
 }

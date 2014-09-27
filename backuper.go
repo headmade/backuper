@@ -130,6 +130,26 @@ func main() {
 			Usage:  "Check server change",
 			Action: CheckAction,
 		},
+		{
+			Name:      "provider",
+			ShortName: "p",
+			Usage:     "Add provider params",
+			//Action:    ProviderAction,
+			Subcommands: []cli.Command{
+				{
+					Name:      "AWS",
+					ShortName: "aws",
+					Usage:     "AWS [AWS_ACCESS_KEY_ID] [AWS_SECRET_ACCESS_KEY]",
+					Action:    ProviderAction,
+				},
+				{
+					Name:      "encrypt",
+					ShortName: "enc",
+					Usage:     "encrypt [PASSWORD]",
+					Action:    ProviderAction,
+				},
+			},
+		},
 	}
 	app.Run(os.Args)
 }

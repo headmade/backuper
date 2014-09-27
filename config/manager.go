@@ -12,9 +12,9 @@ type Config struct {
 	Client *backuper.ClientConfig
 	Agent  *backuper.AgentConfig
 	Local  bool
-	Secret map[string]Provider
+	Secret Providers
 }
-
+type Providers map[string]Provider
 type Provider map[string]string
 
 func New() (*Config, error) {
@@ -34,6 +34,8 @@ func (c *Config) Write(value interface{}) error {
 		c.Agent = value.(*backuper.AgentConfig)
 	case reflect.TypeOf(&backuper.ClientConfig{}):
 		c.Client = value.(*backuper.ClientConfig)
+	case reflect.TypeOf(Providers{}):
+		c.Secret = value.(Providers)
 	}
 	err := WriteConfig(c)
 	return err

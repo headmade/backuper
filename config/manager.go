@@ -12,7 +12,10 @@ type Config struct {
 	Client *backuper.ClientConfig
 	Agent  *backuper.AgentConfig
 	Local  bool
+	Secret map[string]Provider
 }
+
+type Provider map[string]string
 
 func New() (*Config, error) {
 	config, err := loadConfig()

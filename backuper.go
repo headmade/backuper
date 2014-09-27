@@ -61,22 +61,24 @@ func CheckAction(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	client, err := client.Get(BackendAddr())
-	if err != nil {
-		log.Fatal(err)
-	}
-	var agentConfig *backuper.AgentConfig
-	err = client.GetConfig(&agentConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	conf.Write(agentConfig)
-
-	if conf.Agent.StartNow {
-		log.Println("StartNow")
-		BackupAction(c)
-		conf.Agent.StartNow = !conf.Agent.StartNow
+	if !conf.Local {
+		client, err := client.Get(BackendAddr())
+		if err != nil {
+			log.Fatal(err)
+		}
+		var agentConfig *backuper.AgentConfig
+		err = client.GetConfig(&agentConfig)
+		if err != nil {
+			log.Fatal(err)
+		}
 		conf.Write(agentConfig)
+
+		if conf.Agent.StartNow {
+			log.Println("StartNow")
+			BackupAction(c)
+			conf.Agent.StartNow = !conf.Agent.StartNow
+			conf.Write(agentConfig)
+		}
 	}
 }
 

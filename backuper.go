@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	Version = "0.0.1"
+	version = "0.0.1"
 )
 
+// BackendAddr is server host
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
@@ -34,15 +35,15 @@ func initServer(c *cli.Context) error {
 	return err
 }
 
-func CheckUid(commandName string) {
+func checkUID(commandName string) {
 	if false { //os.Getuid() != 0 {
 		fmt.Printf("FAILED! Are you root? Please, run `sudo rollbackup %s [ARGS]`\n", commandName)
 		os.Exit(0)
 	}
 }
 
-func InitAction(c *cli.Context) {
-	CheckUid(c.Command.Name)
+func initAction(c *cli.Context) {
+	checkUID(c.Command.Name)
 	if c.Args().First() == "local" {
 		// conf := config.Config{Local: true}
 		conf, _ := config.New()
@@ -56,7 +57,7 @@ func InitAction(c *cli.Context) {
 	fmt.Println("Success! This server is ready to backup.")
 }
 
-func CheckAction(c *cli.Context) {
+func checkAction(c *cli.Context) {
 	conf, err := config.New()
 	if err != nil {
 		log.Fatal(err)
@@ -75,14 +76,14 @@ func CheckAction(c *cli.Context) {
 
 		if conf.Agent.StartNow {
 			log.Println("StartNow")
-			BackupAction(c)
+			backupAction(c)
 			conf.Agent.StartNow = !conf.Agent.StartNow
 			conf.Write(agentConfig)
 		}
 	}
 }
 
-func BackupAction(c *cli.Context) {
+func backupAction(c *cli.Context) {
 	conf, err := config.New()
 	if err != nil {
 		log.Fatal("This server is not ready to backup. Please exec 'backuper init'")
@@ -109,7 +110,7 @@ func BackupAction(c *cli.Context) {
 
 func main() {
 	app := cli.NewApp()
-	app.Version = Version
+	app.Version = version
 	app.Name = "backuper"
 	app.Author = "Headmade LLC"
 	app.Email = "backuper@headmade.pro"
@@ -118,17 +119,17 @@ func main() {
 		{
 			Name:   "init",
 			Usage:  "Configure agent with signed token",
-			Action: InitAction,
+			Action: initAction,
 		},
 		{
 			Name:   "backup",
 			Usage:  "Make a backup",
-			Action: BackupAction,
+			Action: backupAction,
 		},
 		{
 			Name:   "check",
 			Usage:  "Check server change",
-			Action: CheckAction,
+			Action: checkAction,
 		},
 		{
 			Name:      "provider",
@@ -140,13 +141,13 @@ func main() {
 					Name:      "AWS",
 					ShortName: "aws",
 					Usage:     "AWS [AWS_ACCESS_KEY_ID] [AWS_SECRET_ACCESS_KEY]",
-					Action:    ProviderAction,
+					Action:    providerAction,
 				},
 				{
 					Name:      "encrypt",
 					ShortName: "enc",
 					Usage:     "encrypt [PASSWORD]",
-					Action:    ProviderAction,
+					Action:    providerAction,
 				},
 			},
 		},

@@ -7,7 +7,7 @@ import (
 	"github.com/headmade/backuper/config"
 )
 
-func ProviderAction(c *cli.Context) {
+func providerAction(c *cli.Context) {
 	var providerConfig config.Provider
 	switch c.Command.Name {
 	case "AWS":
@@ -17,7 +17,7 @@ func ProviderAction(c *cli.Context) {
 		validateArgs(c, 1)
 		providerConfig = config.Provider{"PASSWORD": c.Args()[0]}
 	}
-	providerAction(c.Command.Name, providerConfig)
+	providerCommand(c.Command.Name, providerConfig)
 }
 
 func validateArgs(c *cli.Context, length int) {
@@ -26,7 +26,7 @@ func validateArgs(c *cli.Context, length int) {
 	}
 }
 
-func providerAction(name string, providerConfig config.Provider) {
+func providerCommand(name string, providerConfig config.Provider) {
 	conf, err := config.New()
 	if err != nil {
 		log.Fatal(err)

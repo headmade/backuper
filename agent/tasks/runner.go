@@ -67,6 +67,10 @@ func (runner *Runner) backupFileName() string {
 	return runner.appendTimestamp("backup")
 }
 
+func (runner *Runner) backupFilePath() string {
+	return runner.tmpFilePath(runner.backupFileName())
+}
+
 func (runner *Runner) appendTimestamp(str string) string {
 	return strings.Join([]string{
 		str,
@@ -85,35 +89,35 @@ func (runner *Runner) formatDstPath(path string) string {
 	)
 }
 
-func (runner *Runner) encryptAndUpload(filesToUpload []string) (uploadedPath, output string, err error) {
+func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) (output []byte, err error) {
 
-	if len(filesToUpload) == 0 {
-		return "", "", errors.New("No files to upload")
+	if len(tmpFiles) == 0 {
+		return []byte{}, errors.New("No files to encrypt")
 	}
-
-	tarOptionsList := make([]string, 0, 3*len(filesToUpload))
-	for _, path := range filesToUpload {
-		tarOptionsList = append(tarOptionsList, "-C", filepath.Dir(path), filepath.Base(path))
-	}
-
-	uploadedPath = runner.formatDstPath("backup/$server_name/$timestamp")
 
 	cmd := fmt.Sprintf(
-		"tar --bzip -cf - %s | %s | gof3r put -b %s -k %s",
-		strings.Join(tarOptionsList, " "),
+		"tar -cf - -C %s %s | %s > %s",
+		runner.tmpDirPath(),
+		strings.Join(tmpFiles, " "),
 		EncryptCmd("PASS"),
-		"headmade",
-		uploadedPath,
+		backupFilePath,
 	)
 	log.Println(cmd)
 
-	bytes, err := System(cmd)
-	output = string(bytes)
-	return
+	return System(cmd)
 }
 
-func (runner *Runner) uploadBackupFile(backupFileName string) error {
-	return nil
+func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (output []byte, err error) {
+
+	cmd := fmt.Sprintf(
+		"gof3r put -p %s -b %s -k %s",
+		backupFilePath,
+		bucket,
+		runner.formatDstPath(dstPath),
+	)
+	log.Println(cmd)
+
+	return System(cmd)
 }
 
 func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.BackupTaskResult) {
@@ -123,12 +127,13 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 	for _, config := range *configs {
 		task, err := GetTask(&config)
 		if err == nil {
-			tmpFilePath := runner.tmpFilePath(task.TmpFileName())
+			taskTmpFileName := task.TmpFileName()
+			tmpFilePath := runner.tmpFilePath(taskTmpFileName)
 
 			out, err := task.GenerateTmpFile(tmpFilePath)
 
 			results = append(results, backuper.BackupTaskResult{
-				PathResult: backuper.NewPathResult(err, tmpFilePath, string(out)),
+				PathResult: backuper.NewPathResult(err, taskTmpFileName, string(out)),
 			})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
@@ -163,18 +168,28 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	backupResult.Backup = runner.runTasks(configs)
 
-	filesToUpload := make([]string, 0, len(*configs))
+	tmpFiles := make([]string, 0, len(*configs))
 	for _, result := range backupResult.Backup {
 		if len(result.Err) == 0 {
-			filesToUpload = append(filesToUpload, result.Path)
+			tmpFiles = append(tmpFiles, result.Path)
 		}
 	}
 
-	uploadedPath, output, err := runner.encryptAndUpload(filesToUpload)
-	backupResult.Encrypt = backuper.NewPathResult(err, uploadedPath, string(output))
+	backupFilePath := runner.backupFilePath()
+
+	output, err := runner.encryptTmpFiles(backupFilePath, tmpFiles)
+	backupResult.Encrypt = backuper.NewPathResult(err, backupFilePath, string(output))
 
 	if err != nil {
 		log.Println("ERR: encrypt:", err.Error())
+		return
+	}
+
+	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/$hostname/$timestamp")
+	backupResult.Upload = backuper.NewPathResult(err, backupFilePath, string(output))
+
+	if err != nil {
+		log.Println("ERR: upload:", err.Error())
 		return
 	}
 

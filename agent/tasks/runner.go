@@ -123,11 +123,9 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 	for _, config := range *configs {
 		task, err := GetTask(&config)
 		if err == nil {
-			tmpFileName := runner.appendTimestamp(task.tmpFileName())
-			tmpFilePath := runner.tmpFilePath(tmpFileName)
+			tmpFilePath := runner.tmpFilePath(task.TmpFileName())
 
-			// GenerateBackupFile() can change tmpFilePath to suite its needs
-			tmpFilePath, out, err := task.GenerateBackupFile(tmpFilePath)
+			out, err := task.GenerateTmpFile(tmpFilePath)
 
 			results = append(results, backuper.BackupTaskResult{
 				PathResult: backuper.NewPathResult(err, tmpFilePath, string(out)),

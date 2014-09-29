@@ -49,9 +49,11 @@ type BackupResult struct {
 }
 
 type PathResult struct {
-	Err    string
-	Path   string
-	Output string
+	Err       string
+	Path      string
+	Output    string
+	BeginTime time.Time
+	EndTime   time.Time
 }
 
 type BackupTaskResult struct {
@@ -59,9 +61,11 @@ type BackupTaskResult struct {
 	TaskId string
 }
 
-func NewPathResult(err error, path, output string) (result PathResult) {
+func NewPathResult(err error, path, output string, beginTime time.Time) (result PathResult) {
 	result.Path = path
 	result.Output = output
+	result.BeginTime = beginTime
+	result.EndTime = time.Now()
 	if err != nil {
 		result.Err = err.Error()
 	}

@@ -11,19 +11,22 @@ import (
 	"time"
 
 	"github.com/headmade/backuper/backuper"
+	"github.com/headmade/backuper/config"
 	"github.com/nightlyone/lockfile"
 )
 
 type Runner struct {
-	agentConfig *backuper.AgentConfig
-	timestamp   string
-	lockfile    lockfile.Lockfile
+	agentConfig  *backuper.AgentConfig
+	secretConfig *config.Providers
+	timestamp    string
+	lockfile     lockfile.Lockfile
 }
 
-func NewRunner(config *backuper.AgentConfig) *Runner {
+func NewRunner(config *backuper.AgentConfig, secretConfig *config.Providers) *Runner {
 	return &Runner{
-		agentConfig: config,
-		timestamp:   time.Now().Format("20060102_1504"),
+		agentConfig:  config,
+		secretConfig: secretConfig,
+		timestamp:    time.Now().Format("20060102_1504"),
 	}
 }
 

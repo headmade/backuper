@@ -88,7 +88,7 @@ func backupAction(c *cli.Context) {
 	if err != nil {
 		log.Fatal("This server is not ready to backup. Please exec 'backuper init'")
 	}
-	agent, err := agent.Get(conf.Agent)
+	agent, err := agent.Get(conf.Agent, &conf.Secret)
 	if err != nil {
 		log.Fatal(err)
 	}

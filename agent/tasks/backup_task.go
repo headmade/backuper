@@ -7,16 +7,15 @@ import (
 )
 
 type BackupTaskInterface interface {
-  Type() string
+	Type() string
 	GenerateTmpFile(tmpFilePath string) (output []byte, err error)
 	TmpFileName() string
 }
 
 type backupTask struct {
-	config *backuper.TaskConfig
-	tmpFileBase string  // expected to be initialized by enclosing struct
+	config      *backuper.TaskConfig
+	tmpFileBase string // expected to be initialized by enclosing struct
 }
-
 
 func newBackupTask(config *backuper.TaskConfig) *backupTask {
 	return &backupTask{config: config}
@@ -43,4 +42,3 @@ func (self *backupTask) compressionSuffix() (cs string) {
 	}
 	return
 }
-

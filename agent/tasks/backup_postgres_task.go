@@ -66,13 +66,12 @@ func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {
 	if postgresTask.needCompression() {
 		cf = " | bzip2 -c "
 	}
-  return
+	return
 }
 
 func (postgresTask *backupPostgresTask) recreateFlag() (rf string) {
 	if len(postgresTask.config.Params["recreate"]) > 0 {
 		rf = "-c"
 	}
-  return
+	return
 }
-

@@ -2,11 +2,11 @@ package tasks
 
 import (
 	"fmt"
-	"log"
-	"path/filepath"
-	"os"
-	"strings"
 	"github.com/headmade/backuper/backuper"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -71,6 +71,5 @@ func (localTask *backupLocalTask) compressionFlag() (cf string) {
 	if localTask.needCompression() {
 		cf = "--bzip"
 	}
-  return
+	return
 }
-

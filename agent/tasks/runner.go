@@ -86,7 +86,7 @@ func (runner *Runner) formatDstPath(path string) string {
 	return ReplaceVars(
 		path,
 		map[string]string{
-			"$hostname": hostname,
+			"$hostname":  hostname,
 			"$timestamp": runner.timestamp,
 		},
 	)

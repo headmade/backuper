@@ -16,7 +16,7 @@ type BackupTaskBuilderFunc (func(*backuper.TaskConfig) BackupTaskInterface)
 
 var newBackupTaskBuilders = map[string]BackupTaskBuilderFunc{
 	LOCAL_TASK_TYPE:    newBackupLocalTask,
-//	POSTGRES_TASK_TYPE: newBackupPostgresTask,
+	POSTGRES_TASK_TYPE: newBackupPostgresTask,
 }
 
 func RegisterBuilder(taskType string, taskBuilder BackupTaskBuilderFunc) {

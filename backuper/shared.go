@@ -61,11 +61,11 @@ type BackupTaskResult struct {
 	TaskId string
 }
 
-func NewPathResult(err error, path, output string, beginTime time.Time) (result PathResult) {
+func NewPathResult(err error, path, output string, beginTime, endTime time.Time) (result PathResult) {
 	result.Path = path
 	result.Output = output
 	result.BeginTime = beginTime
-	result.EndTime = time.Now()
+	result.EndTime = endTime
 	if err != nil {
 		result.Err = err.Error()
 	}

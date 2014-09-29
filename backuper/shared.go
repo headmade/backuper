@@ -28,9 +28,10 @@ type Destination struct {
 }
 
 type TaskConfig struct {
-	Type   string            `json:"type"`
-	Name   string            `json:"name"`
-	Params map[string]string `json:"params"`
+	Type        string            `json:"type"`
+	Name        string            `json:"name"`
+	Compression string            `json:"compression"`
+	Params      map[string]string `json:"params"`
 }
 
 type BackupResult struct {

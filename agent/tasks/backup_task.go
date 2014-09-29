@@ -34,7 +34,7 @@ func (self *backupTask) TmpFileName() string {
 }
 
 func (self *backupTask) needCompression() bool {
-	return len(self.config.Params["compression"]) > 0
+	return len(self.config.Compression) > 0
 }
 
 func (self *backupTask) compressionSuffix() (cs string) {

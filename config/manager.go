@@ -56,7 +56,7 @@ func loadConfig() (*Config, error) {
 }
 
 func WriteConfig(c *Config) error {
-	data, err := json.Marshal(c)
+	data, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}

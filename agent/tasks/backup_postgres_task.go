@@ -46,14 +46,14 @@ func (postgresTask *backupPostgresTask) GenerateTmpFile(tmpFilePath string) ([]b
 
 	params := &postgresTask.config.Params
 
-	cmd := fmt.Sprintf("PGPASSWORD=%s pg_dump %s -h %s -p %s -U %s %s -t %s %s >%s",
+	cmd := fmt.Sprintf("PGPASSWORD=%s pg_dump %s -h %s -p %s -U %s %s %s %s >%s",
 		(*params)["db_pass"],
 		postgresTask.recreateFlag(),
 		(*params)["db_host"],
 		(*params)["db_port"],
 		(*params)["db_user"],
 		(*params)["db_base"],
-		(*params)["tables"],
+		postgresTask.tablesFlag(),
 		postgresTask.compressionFilter(),
 		tmpFilePath,
 	)
@@ -72,6 +72,14 @@ func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {
 func (postgresTask *backupPostgresTask) recreateFlag() (rf string) {
 	if len(postgresTask.config.Params["recreate"]) > 0 {
 		rf = "-c"
+	}
+	return
+}
+
+func (postgresTask *backupPostgresTask) tablesFlag() (tf string) {
+	tables := postgresTask.config.Params["tables"]
+	if len(tables) > 0 {
+		tf = "-t " + tables
 	}
 	return
 }

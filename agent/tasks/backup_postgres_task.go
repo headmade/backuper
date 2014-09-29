@@ -3,8 +3,14 @@ package tasks
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 
 	"github.com/headmade/backuper/backuper"
+)
+
+const (
+	tmpFileSqlSuffix = ".sql"
 )
 
 type backupPostgresTask struct {
@@ -12,10 +18,25 @@ type backupPostgresTask struct {
 }
 
 func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
-	return &backupPostgresTask{newBackupTask(config)}
+	postgresTask := backupPostgresTask{newBackupTask(config)}
+
+	params := &config.Params
+	tmpFileBase := strings.Join([]string{
+		(*params)["db_host"],
+		(*params)["db_port"],
+		(*params)["db_base"],
+	}, "_")
+
+	tmpFileBase = strings.Join(
+		regexp.MustCompile(`[^\d\w]+`).Split(tmpFileBase, -1),
+		"_",
+	)
+
+	postgresTask.tmpFileBase = tmpFileBase + tmpFileSqlSuffix
+	return &postgresTask
 }
 
-func (postgresTask *backupPostgresTask) GenerateBackupFile(tmpFilePath string) (string, []byte, error) {
+func (postgresTask *backupPostgresTask) GenerateTmpFile(tmpFilePath string) ([]byte, error) {
 
 	tables := postgresTask.config.Params["db_tables"]
 
@@ -23,18 +44,35 @@ func (postgresTask *backupPostgresTask) GenerateBackupFile(tmpFilePath string) (
 		tables = "\\*"
 	}
 
-	cmd := fmt.Sprintf("PGPASSWORD=%s pg_dump -h %s -p %s -U %s %s -t %s | bzip2 -c >%s",
-		postgresTask.config.Params["db_pass"],
-		postgresTask.config.Params["db_host"],
-		postgresTask.config.Params["db_port"],
-		postgresTask.config.Params["db_user"],
-		postgresTask.config.Params["db_base"],
-		tables,
+	params := &postgresTask.config.Params
+
+	cmd := fmt.Sprintf("PGPASSWORD=%s pg_dump %s -h %s -p %s -U %s %s -t %s %s >%s",
+		(*params)["db_pass"],
+		postgresTask.recreateFlag(),
+		(*params)["db_host"],
+		(*params)["db_port"],
+		(*params)["db_user"],
+		(*params)["db_base"],
+		(*params)["tables"],
+		postgresTask.compressionFilter(),
 		tmpFilePath,
 	)
 	log.Println(cmd)
 
-	out, lastErr := System(cmd)
-	return tmpFilePath, out, lastErr
+	return System(cmd)
+}
+
+func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {
+	if postgresTask.needCompression() {
+		cf = " | bzip2 -c "
+	}
+  return
+}
+
+func (postgresTask *backupPostgresTask) recreateFlag() (rf string) {
+	if len(postgresTask.config.Params["recreate"]) > 0 {
+		rf = "-c"
+	}
+  return
 }
 

@@ -56,10 +56,10 @@ func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []
 	}
 
 	cmd := fmt.Sprintf(
-		"tar -cf - -C %s %s %s >%s",
+		"tar -cf - %s -C %s %s >%s",
+		localTask.compressionFlag(),
 		localTask.pathParentDir,
 		localTask.pathBaseName,
-		localTask.compressionFlag(),
 		tmpFilePath,
 	)
 	log.Println(cmd)

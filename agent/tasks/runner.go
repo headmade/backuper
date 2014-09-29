@@ -117,7 +117,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 	envGopath := os.Getenv("GOPATH")
 
 	cmd := fmt.Sprintf(
-		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s PATH=%s:%s gof3r put -p %s -b %s -k %s",
+		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s PATH=%s:%s/bin gof3r put -p %s -b %s -k %s",
 		awsProvider["AWS_ACCESS_KEY_ID"],
 		awsProvider["AWS_SECRET_ACCESS_KEY"],
 		envPath,

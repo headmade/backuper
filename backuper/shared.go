@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+const (
+	BackupErrorCrytical = "error_crytical"
+	BackupErrorCleanup  = "error_cleanup"
+	BackupErrorTask     = "error_task"
+	BackupErrorTaskAll  = "error_task_all"
+	BackupErrorNo       = "success"
+)
+
 type AgentConfig struct {
 	StartNow    bool         `json:"start_now"`
 	Destination Destination  `json:"destination"`
@@ -70,4 +78,8 @@ func NewPathResult(err error, path, output string, beginTime, endTime time.Time)
 		result.Err = err.Error()
 	}
 	return
+}
+
+func (pathResult *PathResult) IsSuccess() bool {
+	return len(pathResult.Err) == 0
 }

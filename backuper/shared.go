@@ -43,25 +43,25 @@ type TaskConfig struct {
 }
 
 type BackupResult struct {
-	Prepare   PathResult
-	Lock      PathResult
-	Backup    []BackupTaskResult
-	Encrypt   PathResult
-	Upload    PathResult
-	Unlock    PathResult
-	Cleanup   PathResult
-	BeginTime time.Time
-	EndTime   time.Time
-	Size      int64
-	Status    string
+	Prepare   PathResult			`json:"prepare"`
+	Lock      PathResult            `json:"lock"`
+	Backup    []BackupTaskResult	`json:"backup"`
+	Encrypt   PathResult            `json:"encrypt"`
+	Upload    PathResult			`json:"upload"`
+	Unlock    PathResult            `json:"unlock"`
+	Cleanup   PathResult            `json:"cleanup"`
+	BeginTime time.Time             `json:"begin_time"`
+	EndTime   time.Time             `json:"end_time"`
+	Size      int64                 `json:"size"`
+	Status    string                `json:"status"`
 }
 
 type PathResult struct {
-	Err       string
-	Path      string
-	Output    string
-	BeginTime time.Time
-	EndTime   time.Time
+	Err       string		`json:"error"`
+	Path      string    	`json:"path"`
+	Output    string    	`json:"output"`
+	BeginTime time.Time 	`json:"begin_time"`
+	EndTime   time.Time 	`json:"end_time"`
 }
 
 type BackupTaskResult struct {

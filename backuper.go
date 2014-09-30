@@ -11,6 +11,7 @@ import (
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/client"
 	"github.com/headmade/backuper/config"
+	"github.com/headmade/backuper/schedule"
 )
 
 const (
@@ -44,6 +45,13 @@ func checkUID(commandName string) {
 
 func initAction(c *cli.Context) {
 	checkUID(c.Command.Name)
+	scheduler, err := schedule.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := scheduler.UpdateCheck(); err != nil {
+		log.Fatal(err)
+	}
 	if c.Args().First() == "local" {
 		// conf := config.Config{Local: true}
 		conf, _ := config.New()
@@ -73,6 +81,13 @@ func checkAction(c *cli.Context) {
 			log.Fatal(err)
 		}
 		conf.Write(agentConfig)
+		scheduler, err := schedule.New()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := scheduler.UpdateBackup(agentConfig.Period); err != nil {
+			log.Println(err)
+		}
 
 		if conf.Agent.StartNow {
 			log.Println("StartNow")

@@ -14,7 +14,7 @@ import (
 )
 
 type Client struct {
-	Url   string
+	URL   string
 	Token string
 }
 
@@ -22,7 +22,7 @@ func (client *Client) request(method string, action string, o interface{}, param
 	var bodyReader io.Reader
 	var req *http.Request
 	var httpClient = &http.Client{}
-	uri := fmt.Sprintf("http://%s/backend/%s?token=%s", client.Url, action, client.Token)
+	uri := fmt.Sprintf("http://%s/backend/%s?token=%s", client.URL, action, client.Token)
 	if len(params) > 0 {
 		json, err := json.Marshal(params[0])
 		if err != nil {

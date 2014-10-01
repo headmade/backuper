@@ -45,7 +45,7 @@ type TaskConfig struct {
 type BackupResult struct {
 	Prepare   PathResult			`json:"prepare"`
 	Lock      PathResult            `json:"lock"`
-	Backup    []BackupTaskResult	`json:"backup"`
+	Backup    []PathResult	`json:"backup"`
 	Encrypt   PathResult            `json:"encrypt"`
 	Upload    PathResult			`json:"upload"`
 	Unlock    PathResult            `json:"unlock"`
@@ -57,29 +57,10 @@ type BackupResult struct {
 }
 
 type PathResult struct {
-	Err       string		`json:"error"`
+	Err       error				`json:"error"`
 	Path      string    	`json:"path"`
 	Output    string    	`json:"output"`
 	BeginTime time.Time 	`json:"begin_time"`
 	EndTime   time.Time 	`json:"end_time"`
 }
 
-type BackupTaskResult struct {
-	PathResult
-	TaskId string
-}
-
-func NewPathResult(err error, path, output string, beginTime, endTime time.Time) (result PathResult) {
-	result.Path = path
-	result.Output = output
-	result.BeginTime = beginTime
-	result.EndTime = endTime
-	if err != nil {
-		result.Err = err.Error()
-	}
-	return
-}
-
-func (pathResult *PathResult) IsSuccess() bool {
-	return len(pathResult.Err) == 0
-}

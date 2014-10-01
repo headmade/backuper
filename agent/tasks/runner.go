@@ -131,9 +131,9 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 	return System(cmd)
 }
 
-func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.BackupTaskResult) {
+func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.PathResult) {
 
-	results = make([]backuper.BackupTaskResult, 0, len(*configs))
+	results = make([]backuper.PathResult, 0, len(*configs))
 
 	for _, config := range *configs {
 		beginTime := time.Now()
@@ -144,8 +144,13 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 
 			out, err := task.GenerateTmpFile(tmpFilePath)
 
-			results = append(results, backuper.BackupTaskResult{
-				PathResult: backuper.NewPathResult(err, taskTmpFileName, string(out), beginTime, time.Now()),
+			results = append(results,
+				backuper.PathResult{
+					Err: err,
+					Path: taskTmpFileName,
+					Output: string(out),
+					BeginTime: beginTime,
+					EndTime: time.Now(),
 			})
 		} else {
 			log.Printf("task type: %s, no registered handler found", config.Type)
@@ -167,7 +172,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	err = runner.prepareTmpDir()
 
 	tmpDirPath := runner.tmpDirPath()
-	backupResult.Prepare = backuper.NewPathResult(err, tmpDirPath, "", beginTime, time.Now())
+	backupResult.Prepare = backuper.PathResult{
+		Err: err,
+		Path: tmpDirPath,
+		Output: "",
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	if err != nil {
 		log.Println("ERR: prepare:", err.Error())
@@ -177,7 +188,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	defer func() {
 		beginTime = time.Now()
 		err = runner.CleanupTmpDir()
-		backupResult.Cleanup = backuper.NewPathResult(err, tmpDirPath, "", beginTime, time.Now())
+		backupResult.Cleanup = backuper.PathResult{
+			Err: err,
+			Path: tmpDirPath,
+			Output: "",
+			BeginTime: beginTime,
+			EndTime: time.Now(),
+		}
 
 		cryticalErrors := []*backuper.PathResult{
 			&backupResult.Prepare,
@@ -190,7 +207,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 		hasCryticalError := false
 		for _, br := range cryticalErrors {
-			if !br.IsSuccess() {
+			if !ResultSuccess(br) {
 				hasCryticalError = true
 				backupResult.Status = backuper.BackupErrorCrytical
 				break
@@ -200,7 +217,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 		if !hasCryticalError {
 			numTaskErrors := 0
 			for _, br := range backupResult.Backup {
-				if !br.IsSuccess() {
+				if !ResultSuccess(&br) {
 					numTaskErrors++
 					backupResult.Status = backuper.BackupErrorTask
 				}
@@ -208,7 +225,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 			if numTaskErrors == len(backupResult.Backup) {
 				backupResult.Status = backuper.BackupErrorTaskAll
 			} else {
-				if !backupResult.Unlock.IsSuccess() || !backupResult.Cleanup.IsSuccess() {
+				if !ResultSuccess(&backupResult.Unlock) || !ResultSuccess(&backupResult.Cleanup) {
 					backupResult.Status = backuper.BackupErrorCleanup
 				}
 			}
@@ -222,7 +239,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	beginTime = time.Now()
 	pidFilePath := runner.pidFilePath()
 	err = runner.lockPidFile(pidFilePath)
-	backupResult.Lock = backuper.NewPathResult(err, pidFilePath, "", beginTime, time.Now())
+	backupResult.Lock = backuper.PathResult{
+		Err: err,
+		Path: pidFilePath,
+		Output: "",
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	if err != nil {
 		log.Println("ERR: lock:", err.Error())
@@ -233,7 +256,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	tmpFiles := make([]string, 0, len(*configs))
 	for _, result := range backupResult.Backup {
-		if len(result.Err) == 0 {
+		if ResultSuccess(&result) {
 			tmpFiles = append(tmpFiles, result.Path)
 		}
 	}
@@ -243,7 +266,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	backupFilePath := runner.backupFilePath()
 
 	output, err := runner.encryptTmpFiles(backupFilePath, tmpFiles)
-	backupResult.Encrypt = backuper.NewPathResult(err, backupFilePath, string(output), beginTime, time.Now())
+	backupResult.Encrypt = backuper.PathResult{
+		Err: err,
+		Path: backupFilePath,
+		Output: string(output),
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	if err != nil {
 		log.Println("ERR: encrypt:", err.Error())
@@ -257,7 +286,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	beginTime = time.Now()
 	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/$hostname/$timestamp")
-	backupResult.Upload = backuper.NewPathResult(err, backupFilePath, string(output), beginTime, time.Now())
+	backupResult.Upload = backuper.PathResult{
+		Err: err,
+		Path: backupFilePath,
+		Output: string(output),
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	if err != nil {
 		log.Println("ERR: upload:", err.Error())
@@ -267,7 +302,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	beginTime = time.Now()
 	// TODO: remember to uncomment the unlock()!
 	//err = runner.unlockPidFile()
-	backupResult.Unlock = backuper.NewPathResult(err, pidFilePath, "", beginTime, time.Now())
+	backupResult.Unlock = backuper.PathResult{
+		Err: err,
+		Path: pidFilePath,
+		Output: "",
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	return
 }
@@ -288,4 +329,8 @@ func ReplaceVars(str string, replacements map[string]string) string {
 		str = strings.Replace(str, from, to, -1)
 	}
 	return str
+}
+
+func ResultSuccess(pathResult *backuper.PathResult) bool {
+	return pathResult.Err == nil
 }

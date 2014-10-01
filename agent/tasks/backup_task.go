@@ -21,23 +21,23 @@ func newBackupTask(config *backuper.TaskConfig) *backupTask {
 	return &backupTask{config: config}
 }
 
-func (self *backupTask) Type() string {
-	return self.config.Type
+func (btask *backupTask) Type() string {
+	return btask.config.Type
 }
 
-func (self *backupTask) TmpFileName() string {
+func (btask *backupTask) TmpFileName() string {
 	return strings.Join([]string{
-		self.Type(),
-		self.tmpFileBase,
-	}, "_") + self.compressionSuffix()
+		btask.Type(),
+		btask.tmpFileBase,
+	}, "_") + btask.compressionSuffix()
 }
 
-func (self *backupTask) needCompression() bool {
-	return len(self.config.Compression) > 0
+func (btask *backupTask) needCompression() bool {
+	return len(btask.config.Compression) > 0
 }
 
-func (self *backupTask) compressionSuffix() (cs string) {
-	if self.needCompression() {
+func (btask *backupTask) compressionSuffix() (cs string) {
+	if btask.needCompression() {
 		cs = ".bz2"
 	}
 	return

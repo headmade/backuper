@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	BackupErrorCrytical = "error_crytical"
-	BackupErrorCleanup  = "error_cleanup"
-	BackupErrorTask     = "error_task"
-	BackupErrorTaskAll  = "error_task_all"
+	BackupErrorCrytical = "alert"
+	BackupErrorCleanup  = "warning"
+	BackupErrorTask     = "warning"
+	BackupErrorTaskAll  = "alert"
 	BackupErrorNo       = "success"
 )
 

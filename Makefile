@@ -1,3 +1,6 @@
 
+APP_PATH=gobackuper
+
 install:
-	go build -o /tmp/go_backuper *go
+	echo Compiling $(APP_PATH)
+	go build -o $(APP_PATH) *go

@@ -57,10 +57,30 @@ type BackupResult struct {
 }
 
 type PathResult struct {
-	Err       error				`json:"error"`
+	Err       *string			`json:"error"`
 	Path      string    	`json:"path"`
-	Output    string    	`json:"output"`
+	Output    *string    	`json:"output"`
 	BeginTime time.Time 	`json:"begin_time"`
 	EndTime   time.Time 	`json:"end_time"`
 }
 
+func NewPathResult(err error, path, output string, begin, end time.Time) PathResult {
+	var errStr *string
+	if err != nil {
+		buf := err.Error()
+		errStr = &buf
+	}
+
+	var outputStr *string
+	if output != "" {
+		outputStr = &output
+	}
+
+	return PathResult{
+		Err: errStr,
+		Path: path,
+		Output: outputStr,
+		BeginTime: begin,
+		EndTime: end,
+	}
+}

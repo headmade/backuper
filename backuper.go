@@ -22,7 +22,7 @@ const (
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
-		backend = "http://api.backuper.headmade.pro"
+		backend = "http://gobackuper.com/v1"
 	}
 	return backend
 }

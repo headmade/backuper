@@ -39,8 +39,8 @@ http://backuper.headmade.pro
 ### Debian
 
 ```
-sudo sh -c 'echo "deb http://apt.backuper.headmade.pro $(lsb_release -cs) main" >> /etc/apt/sources.list'
-wget --quiet -O - http://apt.backuper.headmade.pro/B4C2B02A.asc | sudo apt-key add -
+sudo sh -c 'echo "deb http://apt.gobackuper.com $(lsb_release -cs) main" >> /etc/apt/sources.list'
+wget --quiet -O - http://apt.gobackuper.com/B4C2B02A.asc | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install backuper
 ```

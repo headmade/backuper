@@ -8,6 +8,7 @@ ERROR_COLOR=\033[31;01m
 WARN_COLOR=\033[33;01m
 DEPS=$(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
 
+VERSION:=`cat VERSION`
 
 deps:
 	@echo "$(OK_COLOR)==> Installing dependencies$(NO_COLOR)"
@@ -29,15 +30,13 @@ lint:
 
 build:
 	@echo "$(OK_COLOR)==> Building$(NO_COLOR)"
-	GOOS=linux GOARCH=386 go build -o $(APP_PATH)
+	@echo "Current Version: $(VERSION)"
+	go build -ldflags "-X main.Version $(VERSION)" -o $(APP_PATH)
+	#strip $(APP_PATH)
 
 clear:
 	@echo "$(OK_COLOR)==> Clearing$(NO_COLOR)"
 	rm -f $(APP_PATH)
 
-all: format lint build
-
-install:
-	@echo "$(OK_COLOR)==> Compiling$(NO_COLOR)"
-	go build -o $(APP_PATH)
+brew: build
 

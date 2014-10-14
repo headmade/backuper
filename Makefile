@@ -1,5 +1,5 @@
 
-APP_FILE=backuper_client
+APP_FILE=gobackuper
 APP_PATH=./$(APP_FILE)
 
 NO_COLOR=\033[0m
@@ -36,4 +36,8 @@ clear:
 	rm -f $(APP_PATH)
 
 all: format lint build
+
+install:
+	@echo "$(OK_COLOR)==> Compiling$(NO_COLOR)"
+	go build -o $(APP_PATH)
 

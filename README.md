@@ -21,7 +21,7 @@ Backuper server agent
 ## Регистрация пользователя
 
 Необходимо зарегистрироваться в системе
-http://backuper.headmade.pro
+http://gobackuper.com
 (требуется только email и пароль; на этот email будут присылаться только отчёты о backup, мы его никому не продадим).
 
 

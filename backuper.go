@@ -124,12 +124,22 @@ func backupAction(c *cli.Context) {
 }
 
 func main() {
+	/*
+	// test crash debug info
+	log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
+	if os.Getenv("GOTRACEBACK") == "" {
+		os.Setenv("GOTRACEBACK", "0")
+	}
+	log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
+	var s *string
+	*s = "" // crash
+	*/
 	app := cli.NewApp()
 	app.Version = version
-	app.Name = "backuper"
+	app.Name = "gobackuper"
 	app.Author = "Headmade LLC"
-	app.Email = "backuper@headmade.pro"
-	app.Usage = "A client utility for manage backuper"
+	app.Email = "support@gobackuper.com"
+	app.Usage = "A client utility to perform backups and manage local config"
 	app.Commands = []cli.Command{
 		{
 			Name:   "init",
@@ -138,12 +148,12 @@ func main() {
 		},
 		{
 			Name:   "backup",
-			Usage:  "Make a backup",
+			Usage:  "Perform a backup",
 			Action: backupAction,
 		},
 		{
 			Name:   "check",
-			Usage:  "Check server change",
+			Usage:  "Check if backup config changed",
 			Action: checkAction,
 		},
 		{

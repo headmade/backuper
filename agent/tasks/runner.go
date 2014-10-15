@@ -113,15 +113,11 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (output []byte, err error) {
 
 	awsProvider := (*runner.secretConfig)["AWS"]
-	envPath := os.Getenv("PATH")
-	envGopath := os.Getenv("GOPATH")
 
 	cmd := fmt.Sprintf(
-		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s PATH=%s:%s/bin gof3r put -p %s -b %s -k %s",
+		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
 		awsProvider["AWS_ACCESS_KEY_ID"],
 		awsProvider["AWS_SECRET_ACCESS_KEY"],
-		envPath,
-		envGopath,
 		backupFilePath,
 		bucket,
 		runner.formatDstPath(dstPath),

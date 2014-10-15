@@ -38,5 +38,5 @@ clear:
 	@echo "$(OK_COLOR)==> Clearing$(NO_COLOR)"
 	rm -f $(APP_PATH)
 
-brew: deps updatedeps build
+brew: deps build
 

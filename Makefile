@@ -1,4 +1,3 @@
-
 APP_FILE=gobackuper
 APP_PATH=./$(APP_FILE)
 
@@ -33,6 +32,9 @@ build: deps
 	@echo "Current Version: $(VERSION)"
 	go build -ldflags "-X main.Version $(VERSION)" -o $(APP_PATH)
 	#strip $(APP_PATH)
+
+gof3r:
+	go get -v github.com/rlmcpherson/s3gof3r/gof3r
 
 clear:
 	@echo "$(OK_COLOR)==> Clearing$(NO_COLOR)"

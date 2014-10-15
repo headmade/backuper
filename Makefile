@@ -27,14 +27,17 @@ lint:
 	@echo "$(OK_COLOR)==> Linting$(NO_COLOR)"
 	golint .
 
-build: deps
-	@echo "$(OK_COLOR)==> Building$(NO_COLOR)"
+build: gobackuper gof3r
+
+gobackuper: deps
+	@echo "$(OK_COLOR)==> Building gobackuper$(NO_COLOR)"
 	@echo "Current Version: $(VERSION)"
 	go build -ldflags "-X main.Version $(VERSION)" -o $(APP_PATH)
 	#strip $(APP_PATH)
 
 gof3r:
-	go get -v github.com/rlmcpherson/s3gof3r/gof3r
+	@echo "$(OK_COLOR)==> Building gof3r utility$(NO_COLOR)"
+	go get github.com/rlmcpherson/s3gof3r/gof3r
 
 clear:
 	@echo "$(OK_COLOR)==> Clearing$(NO_COLOR)"

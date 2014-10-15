@@ -28,7 +28,7 @@ lint:
 	@echo "$(OK_COLOR)==> Linting$(NO_COLOR)"
 	golint .
 
-build:
+build: deps
 	@echo "$(OK_COLOR)==> Building$(NO_COLOR)"
 	@echo "Current Version: $(VERSION)"
 	go build -ldflags "-X main.Version $(VERSION)" -o $(APP_PATH)
@@ -38,5 +38,5 @@ clear:
 	@echo "$(OK_COLOR)==> Clearing$(NO_COLOR)"
 	rm -f $(APP_PATH)
 
-brew: deps build
+brew: build
 

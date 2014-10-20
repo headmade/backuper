@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/headmade/backuper/backuper"
+	"github.com/headmade/backuper/hmutil"
 )
 
 const (
@@ -59,7 +60,7 @@ func (postgresTask *backupPostgresTask) GenerateTmpFile(tmpFilePath string) ([]b
 	)
 	log.Println(cmd)
 
-	return System(cmd)
+	return hmutil.System(cmd)
 }
 
 func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {

@@ -30,5 +30,5 @@ func periodToStr(period *backuper.Period) string {
 func (m *Manager) writeCrontab(schedule string, cmd string) error {
 	task := fmt.Sprintf("%s root /usr/local/bin/gobackuper %s >> /var/log/gobackuper_cron.log 2>&1\n\n", schedule, cmd)
 	//return ioutil.WriteFile("/etc/cron.d/backuper_"+cmd, []byte(task), 0600)
-	return ioutil.WriteFile("/tmp/gobackuper_"+cmd, []byte(task), 0600)
+	return ioutil.WriteFile("/tmp/gobackuper_check", []byte(task), 0600)
 }

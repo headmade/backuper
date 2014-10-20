@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/config"
+	"github.com/headmade/backuper/hmutil"
 	"github.com/nightlyone/lockfile"
 )
 
@@ -83,7 +83,7 @@ func (runner *Runner) appendTimestamp(str string) string {
 
 func (runner *Runner) formatDstPath(path string) string {
 	hostname, _ := os.Hostname()
-	return ReplaceVars(
+	return hmutil.ReplaceVars(
 		path,
 		map[string]string{
 			"$hostname":  hostname,
@@ -107,7 +107,7 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 	)
 	log.Println(cmd)
 
-	return System(cmd)
+	return hmutil.System(cmd)
 }
 
 func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (output []byte, err error) {
@@ -124,7 +124,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 	)
 	log.Println(cmd)
 
-	return System(cmd)
+	return hmutil.System(cmd)
 }
 
 func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.PathResult) {
@@ -309,32 +309,13 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	return
 }
 
-// TODO: move to some utils
-func System(cmd string) ([]byte, error) {
-	return exec.Command("sh", "-c", cmd).CombinedOutput()
-}
-
 func EncryptCmd(pass string) string {
 	return fmt.Sprintf(
 		"openssl aes-128-cbc -pass pass:%s",
 		pass,
 	)
 }
-func ReplaceVars(str string, replacements map[string]string) string {
-	for from, to := range replacements {
-		str = strings.Replace(str, from, to, -1)
-	}
-	return str
-}
-
 func ResultSuccess(pathResult *backuper.PathResult) bool {
 	return pathResult.Err == nil
 }
 
-func errString(err error) (s *string) {
-  if err != nil {
-		tmp := err.Error()
-		s = &tmp
-	}
-	return
-}

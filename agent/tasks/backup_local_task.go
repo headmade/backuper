@@ -3,6 +3,7 @@ package tasks
 import (
 	"fmt"
 	"github.com/headmade/backuper/backuper"
+	"github.com/headmade/backuper/hmutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -64,7 +65,7 @@ func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []
 	)
 	log.Println(cmd)
 
-	return System(cmd)
+	return hmutil.System(cmd)
 }
 
 func (localTask *backupLocalTask) compressionFlag() (cf string) {

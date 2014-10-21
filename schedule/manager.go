@@ -35,8 +35,10 @@ var r = regexp.MustCompile(`^(\d{1,2}):(\d{2})`)
 
 func periodToStr(period *backuper.Period) string {
 	m := r.FindStringSubmatch(period.Time)
+	hours := m[1]
+	minutes := m[2]
 
-	str := fmt.Sprintf("%s %s * * *", m[2], m[1])
+	str := fmt.Sprintf("%s %s * * *", minutes, hours)
 	return str
 }
 

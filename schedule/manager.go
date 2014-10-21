@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"fmt"
+	"regexp"
 //	"strconv"
 
 	"github.com/headmade/backuper/backuper"
@@ -30,8 +31,12 @@ func (m *Manager) UpdateCheck() error {
 	return m.writeCrontab("* * * * *", "check")
 }
 
+var r = regexp.MustCompile(`^(\d{1,2}):(\d{2})`)
+
 func periodToStr(period *backuper.Period) string {
-	str := "* * * * *"
+	m := r.FindStringSubmatch(period.Time)
+
+	str := fmt.Sprintf("%s %s * * *", m[2], m[1])
 	return str
 }
 

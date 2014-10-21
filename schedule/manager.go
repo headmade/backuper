@@ -2,10 +2,18 @@ package schedule
 
 import (
 	"fmt"
-	"io/ioutil"
+//	"strconv"
 
 	"github.com/headmade/backuper/backuper"
+	"github.com/headmade/backuper/hmutil"
 )
+
+const (
+	GOTRACEBACK = 1
+	CRON_PATH = "PATH=/bin:/usr/bin:/usr/local/bin:$PATH"
+)
+
+var CRON_GOTRACEBACK = "" //"CRON_GOTRACEBACK=" + strconv.Itoa(GOTRACEBACK_LEVEL)
 
 type Manager struct {
 }
@@ -28,7 +36,10 @@ func periodToStr(period *backuper.Period) string {
 }
 
 func (m *Manager) writeCrontab(schedule string, cmd string) error {
-	task := fmt.Sprintf("%s root /usr/local/bin/gobackuper %s >> /var/log/gobackuper_cron.log 2>&1\n\n", schedule, cmd)
-	//return ioutil.WriteFile("/etc/cron.d/backuper_"+cmd, []byte(task), 0600)
-	return ioutil.WriteFile("/tmp/gobackuper_check", []byte(task), 0600)
+	taskFormat := `crontab -l\
+		| ( grep -v 'gobackuper %s' ; echo '%s %s %s gobackuper %s >> /var/log/gobackuper_cron.log 2>&1' )\
+		| crontab`
+	task := fmt.Sprintf(taskFormat, cmd, schedule, CRON_PATH, CRON_GOTRACEBACK, cmd)
+	_, err := hmutil.System(task)
+	return err
 }

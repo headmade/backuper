@@ -71,7 +71,7 @@ func checkAction(c *cli.Context) {
 		log.Fatal(err)
 	}
 	if !conf.Local {
-		client, err := client.Get(BackendAddr())
+		client, err := client.NewClient(BackendAddr())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -113,7 +113,7 @@ func backupAction(c *cli.Context) {
 	}
 
 	if !conf.Local {
-		client, err := client.Get(BackendAddr())
+		client, err := client.NewClient(BackendAddr())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -125,14 +125,14 @@ func backupAction(c *cli.Context) {
 
 func main() {
 	/*
-	// test crash debug info
-	log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
-	if os.Getenv("GOTRACEBACK") == "" {
-		os.Setenv("GOTRACEBACK", "0")
-	}
-	log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
-	var s *string
-	*s = "" // crash
+		// test crash debug info
+		log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
+		if os.Getenv("GOTRACEBACK") == "" {
+			os.Setenv("GOTRACEBACK", "0")
+		}
+		log.Println("GOTRACEBACK", os.Getenv("GOTRACEBACK"))
+		var s *string
+		*s = "" // crash
 	*/
 	app := cli.NewApp()
 	app.Version = version

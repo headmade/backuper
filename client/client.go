@@ -62,7 +62,7 @@ func InitServer(backendAddr, token string) (err error) {
 	return err
 }
 
-func Get(backendAddr string) (*Client, error) {
+func NewClient(backendAddr string) (*Client, error) {
 	conf, err := config.New()
 	return &Client{backendAddr, conf.Client.Token}, err
 }

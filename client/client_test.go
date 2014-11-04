@@ -15,7 +15,7 @@ import (
 func TestConfigPath(t *testing.T) {
 	conf := config.Config{Client: &backuper.ClientConfig{Token: ""}}
 	config.WriteConfig(&conf)
-	client, _ := Get("test.ru")
+	client, _ := NewClient("test.ru")
 	assert.Equal(t, client, &Client{"test.ru", ""})
 }
 

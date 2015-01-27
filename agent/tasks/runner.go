@@ -86,8 +86,8 @@ func (runner *Runner) formatDstPath(path string) string {
 	return hmutil.ReplaceVars(
 		path,
 		map[string]string{
-			"$hostname":  hostname,
-			"$timestamp": runner.timestamp,
+			"%hostname%":  hostname,
+			"%timestamp%": runner.timestamp,
 		},
 	)
 }
@@ -281,7 +281,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	}
 
 	beginTime = time.Now()
-	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/$hostname/$timestamp")
+	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/%hostname%/%timestamp%")
 	backupResult.Upload = backuper.NewPathResult(
 		err,
 		backupFilePath,

@@ -105,7 +105,6 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 		EncryptCmd("PASS"),
 		backupFilePath,
 	)
-	log.Println(cmd)
 
 	return hmutil.System(cmd)
 }
@@ -122,7 +121,6 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 		bucket,
 		runner.formatDstPath(dstPath),
 	)
-	log.Println(cmd)
 
 	return hmutil.System(cmd)
 }
@@ -228,8 +226,6 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 		}
 
 		backupResult.EndTime = time.Now()
-
-		log.Printf("%#v", backupResult)
 	}()
 
 	beginTime = time.Now()
@@ -291,7 +287,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	)
 
 	if err != nil {
-		log.Println("ERR: upload:", err.Error())
+		log.Println("ERR: upload:", err.Error(), string(output))
 		return
 	}
 

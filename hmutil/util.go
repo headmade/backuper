@@ -1,11 +1,13 @@
 package hmutil
 
 import (
+	"log"
 	"os/exec"
 	"strings"
 )
 
 func System(cmd string) ([]byte, error) {
+	log.Println(cmd)
 	return exec.Command("sh", "-c", cmd).CombinedOutput()
 }
 

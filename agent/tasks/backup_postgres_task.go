@@ -3,7 +3,6 @@ package tasks
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -59,13 +58,12 @@ func (postgresTask *backupPostgresTask) GenerateTmpFile(tmpFilePath string) ([]b
 		postgresTask.compressionFilter(),
 		tmpFilePath,
 	)
-	log.Println(cmd)
 
 	out, err := hmutil.System(cmd)
 	if len(out) > 0 {
 		err = errors.New("pg_dump failed")
 	}
-	log.Println(len(out), string(out), err)
+
 	return out, err
 }
 

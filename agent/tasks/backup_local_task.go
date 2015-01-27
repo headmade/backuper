@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/hmutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,7 +62,6 @@ func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []
 		localTask.pathBaseName,
 		tmpFilePath,
 	)
-	log.Println(cmd)
 
 	return hmutil.System(cmd)
 }

@@ -61,8 +61,8 @@ func (runner *Runner) unlockPidFile() error {
 }
 
 func (runner *Runner) CleanupTmpDir() error {
-	log.Println("cleanupTmpLocal():", runner.tmpDirPath())
-	return nil
+	log.Println("CleanupTmpDir():", runner.tmpDirPath())
+	//return nil
 	return os.RemoveAll(runner.tmpDirPath())
 }
 

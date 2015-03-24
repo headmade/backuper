@@ -43,25 +43,25 @@ type TaskConfig struct {
 }
 
 type BackupResult struct {
-	Prepare   PathResult			`json:"prepare"`
-	Lock      PathResult            `json:"lock"`
-	Backup    []PathResult	`json:"backup"`
-	Encrypt   PathResult            `json:"encrypt"`
-	Upload    PathResult			`json:"upload"`
-	Unlock    PathResult            `json:"unlock"`
-	Cleanup   PathResult            `json:"cleanup"`
-	BeginTime time.Time             `json:"begin_time"`
-	EndTime   time.Time             `json:"end_time"`
-	Size      int64                 `json:"size"`
-	Status    string                `json:"status"`
+	Prepare   PathResult   `json:"prepare"`
+	Lock      PathResult   `json:"lock"`
+	Backup    []PathResult `json:"backup"`
+	Encrypt   PathResult   `json:"encrypt"`
+	Upload    PathResult   `json:"upload"`
+	Unlock    PathResult   `json:"unlock"`
+	Cleanup   PathResult   `json:"cleanup"`
+	BeginTime time.Time    `json:"begin_time"`
+	EndTime   time.Time    `json:"end_time"`
+	Size      int64        `json:"size"`
+	Status    string       `json:"status"`
 }
 
 type PathResult struct {
-	Err       *string			`json:"error"`
-	Path      string    	`json:"path"`
-	Output    *string    	`json:"output"`
-	BeginTime time.Time 	`json:"begin_time"`
-	EndTime   time.Time 	`json:"end_time"`
+	Err       *string   `json:"error"`
+	Path      string    `json:"path"`
+	Output    *string   `json:"output"`
+	BeginTime time.Time `json:"begin_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 func NewPathResult(err error, path, output string, begin, end time.Time) PathResult {
@@ -77,10 +77,10 @@ func NewPathResult(err error, path, output string, begin, end time.Time) PathRes
 	}
 
 	return PathResult{
-		Err: errStr,
-		Path: path,
-		Output: outputStr,
+		Err:       errStr,
+		Path:      path,
+		Output:    outputStr,
 		BeginTime: begin,
-		EndTime: end,
+		EndTime:   end,
 	}
 }

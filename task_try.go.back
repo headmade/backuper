@@ -11,7 +11,7 @@ func main() {
 	types := []string{
 		tasks.DIR_TASK_TYPE,
 		tasks.POSTGRES_TASK_TYPE,
-		MYSQL_TASK_TYPE,
+		tasks.MYSQL_TASK_TYPE,
 		"foo",
 	}
 

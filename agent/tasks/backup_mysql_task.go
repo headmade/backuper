@@ -38,13 +38,6 @@ func newBackupMysqlTask(config *backuper.TaskConfig) BackupTaskInterface {
 }
 
 func (mysqlTask *backupMysqlTask) GenerateTmpFile(tmpFilePath string) ([]byte, error) {
-
-	tables := mysqlTask.config.Params["db_tables"]
-
-	if len(tables) == 0 {
-		tables = "\\*"
-	}
-
 	params := &mysqlTask.config.Params
 	
 	cmd := fmt.Sprintf("mysqldump --skip-add-drop-table -p%s %s -h %s -P %s -u %s %s %s %s >%s",

@@ -5,7 +5,7 @@ import (
   "fmt"
   "regexp"
   "strings"
-  
+
   "github.com/headmade/backuper/backuper"
   "github.com/headmade/backuper/hmutil"
 )
@@ -25,7 +25,6 @@ func newBackupMySQLTask(config *backuper.TaskConfig) BackupTaskInterface {
   tmpFileBase := strings.Join([]string{
     (*params)["db_host"],
     (*params)["db_port"],
-    (*params)["db_user"],
     (*params)["db_base"],
   }, "_")
   
@@ -49,16 +48,16 @@ func (mysqlTask *backupMySQLTask) GenerateTmpFile(tmpFilePath string) ([]byte, e
   }
 
   if len(password) != 0 {
-    password = fmt.Sprintf("--password=%s", password)
+    password = fmt.Sprintf("MYSQL_PWD=%s", password)
   }
 
   params := &mysqlTask.config.Params
 
-  cmd := fmt.Sprintf("mysqldump -h %s -P %s -u %s %s %s %s > %s",
+  cmd := fmt.Sprintf("%s mysqldump -h %s -P %s -u %s %s %s > %s",
+    password,
     (*params)["db_host"],
     (*params)["db_port"],
     (*params)["db_user"],
-    password,
     database,
     tables,
     tmpFilePath,

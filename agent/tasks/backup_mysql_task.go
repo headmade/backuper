@@ -63,8 +63,6 @@ func (mysqlTask *backupMySQLTask) GenerateTmpFile(tmpFilePath string) ([]byte, e
     tmpFilePath,
   )
 
-  fmt.Println(cmd)
-
   out, err := hmutil.System(cmd)
   if len(out) > 0 {
     err = errors.New("mysqldump failed")

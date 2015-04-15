@@ -85,6 +85,4 @@ func TestPostgresFileGenetation(t *testing.T) {
     fmt.Println(fmt.Sprintf("%s", out))
     t.Error(err)
   }
-  
-  // TODO: дописать тест с использованием раннера.
 }

@@ -102,7 +102,7 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 		"tar -cf - -C %s %s | %s > %s",
 		runner.tmpDirPath(),
 		strings.Join(tmpFiles, " "),
-		EncryptCmd("PASS"),
+		EncryptCmd((*runner.secretConfig)["encryption"]["pass"]),
 		backupFilePath,
 	)
 
@@ -119,7 +119,8 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 		awsProvider["AWS_SECRET_ACCESS_KEY"],
 		backupFilePath,
 		bucket,
-		runner.formatDstPath(dstPath),
+		dstPath,
+		// runner.formatDstPath(dstPath),
 	)
 
 	return hmutil.System(cmd)
@@ -277,7 +278,8 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	}
 
 	beginTime = time.Now()
-	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/%hostname%/%timestamp%")
+	dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
+	output, err = runner.uploadBackupFile(backupFilePath, "headmade", dstPath)
 	backupResult.Upload = backuper.NewPathResult(
 		err,
 		backupFilePath,

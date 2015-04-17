@@ -31,7 +31,7 @@ func NewRunner(config *backuper.AgentConfig, secretConfig *config.Providers) *Ru
 }
 
 func (runner *Runner) tmpDirPath() string {
-	return runner.agentConfig.TmpDir + "/backuper/"
+	return filepath.Join(runner.agentConfig.TmpDir, "backuper")
 }
 
 func (runner *Runner) tmpFilePath(tmpFileName string) string {
@@ -278,7 +278,8 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	}
 
 	beginTime = time.Now()
-	dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
+	// dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
+	dstPath := runner.formatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"))
 	output, err = runner.uploadBackupFile(backupFilePath, "headmade", dstPath)
 	backupResult.Upload = backuper.NewPathResult(
 		err,

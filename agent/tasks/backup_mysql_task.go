@@ -53,13 +53,14 @@ func (mysqlTask *backupMySQLTask) GenerateTmpFile(tmpFilePath string) ([]byte, e
 
   params := &mysqlTask.config.Params
 
-  cmd := fmt.Sprintf("%s mysqldump -h %s -P %s -u %s %s %s > %s",
+  cmd := fmt.Sprintf("%s mysqldump -h %s -P %s -u %s %s %s %s > %s",
     password,
     (*params)["db_host"],
     (*params)["db_port"],
     (*params)["db_user"],
     database,
     tables,
+    mysqlTask.compressionFilter(),
     tmpFilePath,
   )
 
@@ -73,7 +74,7 @@ func (mysqlTask *backupMySQLTask) GenerateTmpFile(tmpFilePath string) ([]byte, e
 
 func (mysqlTask *backupMySQLTask) compressionFilter() (cf string) {
   if mysqlTask.needCompression() {
-    cf = "| bzip2"
+    cf = "| bzip2 -с"
   }
   return
 }

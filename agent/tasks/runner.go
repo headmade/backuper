@@ -92,21 +92,30 @@ func (runner *Runner) formatDstPath(path string) string {
 	)
 }
 
+// TODO: адаптировать под винду
 func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) (output []byte, err error) {
 
 	if len(tmpFiles) == 0 {
 		return []byte{}, errors.New("No files to encrypt")
 	}
 
-	cmd := fmt.Sprintf(
-		"tar -cf - -C %s %s | %s > %s",
-		runner.tmpDirPath(),
-		strings.Join(tmpFiles, " "),
-		EncryptCmd((*runner.secretConfig)["encryption"]["pass"]),
-		backupFilePath,
-	)
+	// cmd := fmt.Sprintf(
+	// 	"tar -cf - -C %s %s | %s > %s",
+	// 	runner.tmpDirPath(),
+	// 	strings.Join(tmpFiles, " "),
+	// 	EncryptCmd((*runner.secretConfig)["encryption"]["pass"]),
+	// 	backupFilePath,
+	// )
 
-	return hmutil.System(cmd)
+	hmutil.PackAndCompress(
+		runner.tmpDirPath(),
+		tmpFiles,
+		backupFilePath + ".tar.gz",
+		[]byte((*runner.secretConfig)["encryption"]["pass"]),
+		true,
+	)
+	return []byte{}, nil
+	//return hmutil.System(cmd)
 }
 
 func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (output []byte, err error) {

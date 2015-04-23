@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/hmutil"
 	"os"
@@ -55,15 +55,18 @@ func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []
 		return
 	}
 
-	cmd := fmt.Sprintf(
-		"tar -cf - %s -C %s %s >%s",
-		localTask.compressionFlag(),
-		localTask.pathParentDir,
-		localTask.pathBaseName,
-		tmpFilePath,
-	)
+	// cmd := fmt.Sprintf(
+	// 	"tar -cf - %s -C %s %s >%s",
+	// 	localTask.compressionFlag(),
+	// 	localTask.pathParentDir,
+	// 	localTask.pathBaseName,
+	// 	tmpFilePath,
+	// )
 
-	return hmutil.System(cmd)
+	// return hmutil.System(cmd)
+
+	hmutil.PackAndCompress(localTask.pathParentDir, []string{localTask.pathBaseName}, tmpFilePath, []byte{}, false)
+	return []byte{}, nil
 }
 
 func (localTask *backupLocalTask) compressionFlag() (cf string) {

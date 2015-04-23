@@ -38,7 +38,7 @@ func (btask *backupTask) needCompression() bool {
 
 func (btask *backupTask) compressionSuffix() (cs string) {
 	if btask.needCompression() {
-		cs = ".bz2"
+		cs = ".gz"
 	}
 	return
 }

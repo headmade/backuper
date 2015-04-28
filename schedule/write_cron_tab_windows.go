@@ -29,13 +29,10 @@ func (m *Manager) writeCrontab(schedule string, cmd string) error {
   time := toMinutes(strings.Split(schedule, " ")[0:2])
   path := "D:\\src\\github.com\\Twizty\\cbackup\\backuper\\backuper.exe"
   taskFormat = fmt.Sprintf(taskFormat, path, cmd, "gobackuper_" + cmd, time)
-  fmt.Println(taskFormat)
   f, _ := os.Create("C:\\tmp\\sche.bat")
   f.Write([]byte(taskFormat))
   f.Close()
   res, err := hmutil.System("sche.bat")
   os.Remove("C:\\tmp\\sche.bat")
-  // res, err := hmutil.System(taskFormat)
-  fmt.Println(string(res))
   return err
 }

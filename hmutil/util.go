@@ -1,8 +1,8 @@
 package hmutil
 
 import (
-	"log"
-	"os/exec"
+	// "log"
+	// "os/exec"
 	"strings"
 
 	"os"
@@ -17,10 +17,10 @@ import (
 	"archive/tar"
 )
 
-func System(cmd string) ([]byte, error) {
-	log.Println(cmd)
-	return exec.Command("sh", "-c", cmd).CombinedOutput()
-}
+// func System(cmd string) ([]byte, error) {
+// 	log.Println(cmd)
+// 	return exec.Command("sh", "-c", cmd).CombinedOutput()
+// }
 
 func ReplaceVars(str string, replacements map[string]string) string {
 	for from, to := range replacements {
@@ -44,12 +44,13 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 		if _err != nil {
 			continue
 		}
+
 		s, _err := f.Stat()
+
 		if s.IsDir() {
 			Tar(filepath.Join(dir, file), []string{"*"}, tw, file)
 		} else {
 			handleError(_err)
-			// s, _ := f.Stat()
 
 			header := &tar.Header{
 				Name: filepath.Join(prevdir, s.Name()),
@@ -63,6 +64,7 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 
 			buffer := make([]byte, s.Size())
 			buffer, _err = ioutil.ReadFile(filepath.Join(dir, s.Name())) // file.Read(buffer)
+			handleError(_err)
 
 			if _, _err = tw.Write(buffer); _err != nil {
 				handleError(_err)
@@ -86,11 +88,12 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 func Gzip(buffer *bytes.Buffer) bytes.Buffer {
   var gzFile bytes.Buffer
   gzWriter := gzip.NewWriter(&gzFile)
-
+  defer gzWriter.Close()
+  defer gzWriter.Flush()
   _, _err := gzWriter.Write(buffer.Bytes())
+  
   handleError(_err)
-  gzWriter.Close()
-
+  
   return gzFile
 }
 
@@ -104,21 +107,19 @@ func Encode(buffer *bytes.Buffer, encodeKey []byte) bytes.Buffer {
   stream := cipher.NewOFB(block, iv[:])
 
   writer := &cipher.StreamWriter{S: stream, W: &outbuffer}
-
+  defer writer.Close()
   if _, _err = io.Copy(writer, buffer); _err != nil {
     panic(_err)
   }
-
-  writer.Close()
 
   return outbuffer
 }
 
 func WriteToFile(path string, buffer bytes.Buffer) {
   file, _err := os.Create(path)
+  defer file.Close()
   handleError(_err)
   file.Write(buffer.Bytes())
-  file.Close()
 }
 
 func PackAndCompress(dir string, files []string, outputFile string, key []byte, encrypt bool) {

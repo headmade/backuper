@@ -73,19 +73,23 @@ func checkAction(c *cli.Context) {
 	if !conf.Local {
 		client, err := client.NewClient(BackendAddr())
 		if err != nil {
+			fmt.Println("1")
 			log.Fatal(err)
 		}
 		var agentConfig *backuper.AgentConfig
 		err = client.GetConfig(&agentConfig)
 		if err != nil {
+			fmt.Println("2")
 			log.Fatal(err)
 		}
 		conf.Write(agentConfig)
 		scheduler, err := schedule.New()
 		if err != nil {
+			fmt.Println("3")
 			log.Fatal(err)
 		}
 		if err := scheduler.UpdateBackup(agentConfig.Period); err != nil {
+			fmt.Println("4")
 			log.Println(err)
 		}
 

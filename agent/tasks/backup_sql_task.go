@@ -22,7 +22,7 @@ func newBackupSQLTask(config *backuper.TaskConfig) *backupSQLTask {
 func (sqlTask *backupSQLTask) compressionFilter() (cf string) {
   fmt.Println("cf")
   if sqlTask.needCompression() {
-    cf = "| bzip2 -с"
+    cf = "| bzip2 -c"
   }
   return
 }

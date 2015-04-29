@@ -15,11 +15,11 @@ const (
 )
 
 type backupMySQLTask struct {
-  *backupTask
+  *backupSQLTask
 }
 
 func newBackupMySQLTask(config *backuper.TaskConfig) BackupTaskInterface {
-  mysqlTask := backupMySQLTask{newBackupTask(config)}
+  mysqlTask := backupMySQLTask{newBackupSQLTask(config)}
 
   params := &config.Params
   tmpFileBase := strings.Join([]string{
@@ -33,7 +33,7 @@ func newBackupMySQLTask(config *backuper.TaskConfig) BackupTaskInterface {
     "_",
   )
 
-  mysqlTask.tmpFileBase = tmpFileBase + tmpFileMySQLSuffix
+  mysqlTask.tmpFileBase = tmpFileBase + tmpFileSQLSuffix
 
   return &mysqlTask
 }
@@ -72,10 +72,23 @@ func (mysqlTask *backupMySQLTask) GenerateTmpFile(tmpFilePath string) ([]byte, e
   return out, err
 }
 
-func (mysqlTask *backupMySQLTask) compressionFilter() (cf string) {
-  if mysqlTask.needCompression() {
-    cf = "| bzip2 -с"
-  }
-  return
-}
+// func (mysqlTask *backupMySQLTask) compressionFilter() (cf string) {
+//   if mysqlTask.needCompression() {
+//     cf = "| bzip2 -с"
+//   }
+//   return
+// }
 
+// func (mysqlTask *backupMySQLTask) TmpFileName() string {
+//   return strings.Join([]string{
+//     mysqlTask.Type(),
+//     mysqlTask.tmpFileBase,
+//   }, "_") + mysqlTask.compressionSuffix()
+// }
+
+// func (mysqlTask *backupMySQLTask) compressionSuffix() (cs string) {
+//   if mysqlTask.needCompression() {
+//     cs = ".bz2"
+//   }
+//   return
+// }

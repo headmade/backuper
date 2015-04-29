@@ -92,7 +92,6 @@ func (runner *Runner) formatDstPath(path string) string {
 	)
 }
 
-// TODO: адаптировать под винду
 func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) (output []byte, err error) {
 
 	if len(tmpFiles) == 0 {

@@ -34,8 +34,8 @@ func (m *Manager) writeCrontab(schedule string, cmd string) error {
   f, _ := os.Create(batFile)
   f.Write([]byte(taskFormat))
   f.Close()
-  res, err := hmutil.System(batFile)
-  fmt.Println(string(res))
+  _, err := hmutil.System(batFile)
+  // fmt.Println(string(res))
   os.Remove(batFile)
   return err
 }

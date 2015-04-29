@@ -15,11 +15,11 @@ const (
 )
 
 type backupPostgresTask struct {
-	*backupTask
+	*backupSQLTask
 }
 
 func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
-	postgresTask := backupPostgresTask{newBackupTask(config)}
+	postgresTask := backupPostgresTask{newBackupSQLTask(config)}
 
 	params := &config.Params
 	tmpFileBase := strings.Join([]string{
@@ -33,7 +33,7 @@ func newBackupPostgresTask(config *backuper.TaskConfig) BackupTaskInterface {
 		"_",
 	)
 
-	postgresTask.tmpFileBase = tmpFileBase + tmpFileSqlSuffix
+	postgresTask.tmpFileBase = tmpFileBase + tmpFileSQLSuffix
 	return &postgresTask
 }
 
@@ -67,13 +67,6 @@ func (postgresTask *backupPostgresTask) GenerateTmpFile(tmpFilePath string) ([]b
 	return out, err
 }
 
-func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {
-	if postgresTask.needCompression() {
-		cf = " | bzip2 -c "
-	}
-	return
-}
-
 func (postgresTask *backupPostgresTask) recreateFlag() (rf string) {
 	if len(postgresTask.config.Params["recreate"]) > 0 {
 		rf = "-c"
@@ -88,3 +81,24 @@ func (postgresTask *backupPostgresTask) tablesFlag() (tf string) {
 	}
 	return
 }
+
+// func (postgresTask *backupPostgresTask) compressionFilter() (cf string) {
+// 	if postgresTask.needCompression() {
+// 		cf = " | bzip2 -c "
+// 	}
+// 	return
+// }
+
+// func (postgresTask *backupPostgresTask) TmpFileName() string {
+// 	return strings.Join([]string{
+// 		postgresTask.Type(),
+// 		postgresTask.tmpFileBase,
+// 	}, "_") + postgresTask.compressionSuffix()
+// }
+
+// func (postgresTask *backupPostgresTask) compressionSuffix() (cs string) {
+// 	if postgresTask.needCompression() {
+// 		cs = ".bz2"
+// 	}
+// 	return
+// }

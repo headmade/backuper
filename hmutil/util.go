@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"os"
-	"fmt"
 	"path/filepath"
 	"bytes"
 	"io/ioutil"
@@ -144,7 +143,7 @@ func PackAndCompress(dir string, files []string, outputFile string, key []byte, 
 
 func handleError(e error) {
 	if e != nil {
-		fmt.Println(e)
+		panic(e)
 	}
 }
 

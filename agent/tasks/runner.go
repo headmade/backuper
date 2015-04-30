@@ -125,9 +125,9 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
 		awsProvider["AWS_ACCESS_KEY_ID"],
 		awsProvider["AWS_SECRET_ACCESS_KEY"],
-		backupFilePath,
+		backupFilePath + ".tar.gz.encrypted",
 		bucket,
-		dstPath,
+		dstPath + ".tar.gz.encrypted",
 		// runner.formatDstPath(dstPath),
 	)
 
@@ -288,7 +288,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	beginTime = time.Now()
 	// dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
 	dstPath := runner.formatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"))
-	output, err = runner.uploadBackupFile(backupFilePath, "headmade", dstPath)
+	output, err = runner.uploadBackupFile(backupFilePath , "headmade", dstPath)
 	backupResult.Upload = backuper.NewPathResult(
 		err,
 		backupFilePath,

@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"io"
 	"crypto/aes"
-  "crypto/cipher"
+	"crypto/cipher"
 	"compress/gzip"
 	"archive/tar"
 )
@@ -28,11 +28,15 @@ func ReplaceVars(str string, replacements map[string]string) string {
 	return str
 }
 
-func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
+func Tar(dir string, files []string, tw *tar.Writer, prevdir string) error {
 	if len(files) == 1 && files[0] == "*" {
 		files = []string{}
 		d, _err := ioutil.ReadDir(dir)
-		handleError(_err)
+		
+		if _err != nil {
+			return _err
+		}
+
 		for _, e := range d {
 			files = append(files, e.Name())
 		}
@@ -49,7 +53,9 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 		if s.IsDir() {
 			Tar(filepath.Join(dir, file), []string{"*"}, tw, file)
 		} else {
-			handleError(_err)
+			if _err != nil {
+				return _err
+			}
 
 			header := &tar.Header{
 				Name: filepath.Join(prevdir, s.Name()),
@@ -58,19 +64,22 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 			}
 
 			if _err = tw.WriteHeader(header); _err != nil {
-				handleError(_err)
+				return _err
 			}
 
 			buffer := make([]byte, s.Size())
 			buffer, _err = ioutil.ReadFile(filepath.Join(dir, s.Name())) // file.Read(buffer)
-			handleError(_err)
+			if _err != nil {
+				return _err
+			}
 
 			if _, _err = tw.Write(buffer); _err != nil {
-				handleError(_err)
+				return _err
 			}
 		}
 	}
 
+	return nil
 }
 
 // func Gzip(pathToFile string, buffer *bytes.Buffer) {
@@ -84,60 +93,80 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) {
 // 	gzWriter.Close()
 // }
 
-func Gzip(buffer *bytes.Buffer) bytes.Buffer {
-  var gzFile bytes.Buffer
-  gzWriter := gzip.NewWriter(&gzFile)
-  defer gzWriter.Close()
-  defer gzWriter.Flush()
-  _, _err := gzWriter.Write(buffer.Bytes())
-  
-  handleError(_err)
-  
-  return gzFile
+func Gzip(buffer *bytes.Buffer) (bytes.Buffer, error) {
+	var gzFile bytes.Buffer
+	gzWriter := gzip.NewWriter(&gzFile)
+	_, _err := gzWriter.Write(buffer.Bytes())
+	gzWriter.Flush()
+	gzWriter.Close()
+	if _err != nil {
+		return bytes.Buffer{}, _err
+	}
+	
+	return gzFile, nil
 }
 
-func Encode(buffer *bytes.Buffer, encodeKey []byte) bytes.Buffer {
-  var outbuffer bytes.Buffer
+func Encode(buffer *bytes.Buffer, encodeKey []byte) (bytes.Buffer, error) {
+	var outbuffer bytes.Buffer
 
-  block, _err := aes.NewCipher(encodeKey)
-  handleError(_err)
+	block, _err := aes.NewCipher(encodeKey)
+	if _err != nil {
+		return bytes.Buffer{}, _err
+	}
 
-  var iv [aes.BlockSize]byte
-  stream := cipher.NewOFB(block, iv[:])
+	var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(block, iv[:])
 
-  writer := &cipher.StreamWriter{S: stream, W: &outbuffer}
-  defer writer.Close()
-  if _, _err = io.Copy(writer, buffer); _err != nil {
-    panic(_err)
-  }
+	writer := &cipher.StreamWriter{S: stream, W: &outbuffer}
+	defer writer.Close()
+	if _, _err = io.Copy(writer, buffer); _err != nil {
+		return bytes.Buffer{}, _err
+	}
 
-  return outbuffer
+	return outbuffer, nil
 }
 
-func WriteToFile(path string, buffer bytes.Buffer) {
-  file, _err := os.Create(path)
-  defer file.Close()
-  handleError(_err)
-  file.Write(buffer.Bytes())
+func WriteToFile(path string, buffer bytes.Buffer) error {
+	file, _err := os.Create(path)
+	defer file.Close()
+	if _err != nil {
+		return _err
+	}
+	file.Write(buffer.Bytes())
+	return nil
 }
 
-func PackAndCompress(dir string, files []string, outputFile string, key []byte, encrypt bool) {
+func PackAndCompress(dir string, files []string, outputFile string, key []byte, encrypt bool) error {
 	outdir, _ := filepath.Split(outputFile)
 	_err := os.MkdirAll(outdir, 0777)
-	handleError(_err)
+	if _err != nil {
+		return _err
+	}
 
 	var tarFile bytes.Buffer
 
 	tarWriter := tar.NewWriter(&tarFile)
-	Tar(dir, files, tarWriter, "")
+	_err = Tar(dir, files, tarWriter, "")
+
+	if _err != nil {
+		return _err
+	}
+
 	tarWriter.Close()
-	gzipedBuffer := Gzip(&tarFile)
+	gzipedBuffer, _err := Gzip(&tarFile)
+
+	if _err != nil {
+		return _err
+	}
 
 	if encrypt {
-		encryptedBuffer := Encode(&gzipedBuffer, key)
-		WriteToFile(outputFile + ".encrypted", encryptedBuffer)
+		encryptedBuffer, _err := Encode(&gzipedBuffer, key)
+		if _err != nil {
+			return _err
+		}
+		return WriteToFile(outputFile + ".encrypted", encryptedBuffer)
 	} else {
-		WriteToFile(outputFile, gzipedBuffer)
+		return WriteToFile(outputFile, gzipedBuffer)
 	}
 }
 

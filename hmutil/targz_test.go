@@ -47,7 +47,10 @@ func after() {
 func TestTarGZ(t *testing.T) {
   wg.Add(10)
   before()
-  PackAndCompress(testDirPath,[]string{"*"}, testDirPath + "result.tar.gz", []byte("qqqqwwwweeeensdu"), true)
+  _err := PackAndCompress(testDirPath,[]string{"*"}, testDirPath + "result.tar.gz", []byte("qqqqwwwweeeensdu"), true)
+  if _err != nil {
+    t.Error(_err)
+  }
   after()
   wg.Wait()
 }

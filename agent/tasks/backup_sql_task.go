@@ -1,7 +1,6 @@
 package tasks
 
 import (
-  "fmt"
   "strings"
 
   "github.com/headmade/backuper/backuper"

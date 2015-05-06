@@ -14,6 +14,9 @@ import (
 	"crypto/cipher"
 	"compress/gzip"
 	"archive/tar"
+
+	"github.com/rlmcpherson/s3gof3r"
+	"github.com/laher/scp-go/scp"
 )
 
 // func System(cmd string) ([]byte, error) {
@@ -176,6 +179,72 @@ func handleError(e error) {
 	}
 }
 
+func UploadToS3(k s3gof3r.Keys, bucketName string, pathToFile string) error {
+	s3 := s3gof3r.New("", k)
+	b := s3.Bucket(bucketName)
+
+	file, err := os.Open(pathToFile)
+	if err != nil {
+		return err
+	}
+
+	stats, _ := file.Stat()
+
+	w, err := b.PutWriter(stats.Name(), nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if _, err = io.Copy(w, file); err != nil { // Copy into S3
+		return err
+	}
+
+	if err = w.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DownloadFromS3(k s3gof3r.Keys, bucketName, filename, outputDirPath string) error {
+	s3 := s3gof3r.New("", k)
+	b := s3.Bucket(bucketName)
+
+	r, _, err := b.GetReader(filename, nil)
+	if err != nil {
+		return err
+	}
+
+	outputFile, err := os.Create(filepath.Join(outputDirPath, filename))
+	if err != nil {
+		return err
+	}
+
+	if _, err = io.Copy(outputFile, r); err != nil {
+		return err
+	}
+
+	err = r.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SSHUploader(port int, id_rsa, host, user, srcFile, dstFile string) *scp.SecureCopier {
+	return scp.NewSecureCopier(port, false, false, false, true, false, false, id_rsa, "", "", srcFile, host, user, dstFile)
+}
+
+func SSHDownloader(port int, id_rsa, host, user, srcFile, dstFile string) *scp.SecureCopier {
+	return scp.NewSecureCopier(port, false, false, false, true, false, false, id_rsa, host, user, srcFile, "", "", dstFile)
+}
+
+func SSHExec(ssh *scp.SecureCopier) error {
+	var o, e bytes.Buffer
+	err, _ := ssh.Exec(nil, &o, &e)
+	return err
+}
 /*
 func ErrString(err error) (s *string) {
 	if err != nil {

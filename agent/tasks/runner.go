@@ -13,6 +13,7 @@ import (
 	"github.com/headmade/backuper/config"
 	"github.com/headmade/backuper/hmutil"
 	"github.com/nightlyone/lockfile"
+	"github.com/rlmcpherson/s3gof3r"
 )
 
 type Runner struct {
@@ -121,17 +122,25 @@ func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (
 
 	awsProvider := (*runner.secretConfig)["AWS"]
 
-	cmd := fmt.Sprintf(
-		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
-		awsProvider["AWS_ACCESS_KEY_ID"],
-		awsProvider["AWS_SECRET_ACCESS_KEY"],
-		backupFilePath + ".tar.gz.encrypted",
-		bucket,
-		dstPath + ".tar.gz.encrypted",
-		// runner.formatDstPath(dstPath),
-	)
+	// cmd := fmt.Sprintf(
+	// 	"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
+	// 	awsProvider["AWS_ACCESS_KEY_ID"],
+	// 	awsProvider["AWS_SECRET_ACCESS_KEY"],
+	// 	backupFilePath + ".tar.gz.encrypted",
+	// 	bucket,
+	// 	dstPath + ".tar.gz.encrypted",
+	// 	// runner.formatDstPath(dstPath),
+	// )
 
-	return hmutil.System(cmd)
+	// return hmutil.System(cmd)
+	return nil, hmutil.UploadToS3(
+		s3gof3r.Keys{
+			AccessKey: awsProvider["AWS_ACCESS_KEY_ID"], 
+			SecretKey: awsProvider["AWS_SECRET_ACCESS_KEY"],
+		},
+		bucket,
+		backupFilePath + ".tar.gz.encrypted",
+	)
 }
 
 func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.PathResult) {
@@ -203,7 +212,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 			&backupResult.Prepare,
 			&backupResult.Lock,
 			&backupResult.Encrypt,
-			&backupResult.Upload,
+			// &backupResult.Upload,
 		}
 
 		backupResult.Status = backuper.BackupErrorNo
@@ -289,13 +298,22 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	// dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
 	dstPath := runner.formatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"))
 	output, err = runner.uploadBackupFile(backupFilePath , "headmade", dstPath)
-	backupResult.Upload = backuper.NewPathResult(
-		err,
-		backupFilePath,
-		string(output),
-		beginTime,
-		time.Now(),
-	)
+	// backupResult.Upload = backuper.NewPathResult(
+	// 	err,
+	// 	backupFilePath,
+	// 	string(output),
+	// 	beginTime,
+	// 	time.Now(),
+	// )
+
+	backupResult.Upload = backuper.UploadResult{
+		Err: err.Error(),
+		Path: backupFilePath,
+		Type: "S3",
+		Destination: "headmade",
+		BeginTime: beginTime,
+		EndTime: time.Now(),
+	}
 
 	if err != nil {
 		log.Println("ERR: upload:", err.Error(), string(output))

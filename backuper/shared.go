@@ -47,7 +47,8 @@ type BackupResult struct {
 	Lock      PathResult            `json:"lock"`
 	Backup    []PathResult	`json:"backup"`
 	Encrypt   PathResult            `json:"encrypt"`
-	Upload    PathResult			`json:"upload"`
+	// Upload    PathResult			`json:"upload"`
+	Upload    UploadResult			`json:"upload"`
 	Unlock    PathResult            `json:"unlock"`
 	Cleanup   PathResult            `json:"cleanup"`
 	BeginTime time.Time             `json:"begin_time"`
@@ -62,6 +63,15 @@ type PathResult struct {
 	Output    *string    	`json:"output"`
 	BeginTime time.Time 	`json:"begin_time"`
 	EndTime   time.Time 	`json:"end_time"`
+}
+
+type UploadResult struct {
+	Err         string    `json:"error"`
+	Destination string    `json:"destination"` // server ip or domain if type is ssh or ftp, bucket if s3
+	Path        string    `json:"path"`        // name of the file if s3
+	Type        string    `json:"type"`        // ssh, ftp, s3, all uppercase
+	BeginTime   time.Time `json:"begin_time"`
+	EndTime     time.Time `json:"end_time"`
 }
 
 func NewPathResult(err error, path, output string, begin, end time.Time) PathResult {

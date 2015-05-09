@@ -76,3 +76,7 @@ func (client *Client) GetConfig(o interface{}) error {
 	err := client.request("GET", "GetConfig", o)
 	return err
 }
+
+func (client *Client) GetBackupsList(brs *[]backuper.BackupResult) error {
+	return client.request("GET", "GetBackups", brs)
+}

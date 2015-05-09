@@ -4,7 +4,7 @@ import (
 	// "log"
 	// "os/exec"
 	"strings"
-
+	"fmt"
 	"os"
 	"path/filepath"
 	"bytes"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/rlmcpherson/s3gof3r"
 	"github.com/laher/scp-go/scp"
+	"github.com/dutchcoders/goftp"
 )
 
 // func System(cmd string) ([]byte, error) {
@@ -245,6 +246,66 @@ func SSHExec(ssh *scp.SecureCopier) error {
 	err, _ := ssh.Exec(nil, &o, &e)
 	return err
 }
+
+func prepareFTPConn(port int, host, login, password string) (*goftp.FTP, error) {
+	var ftp *goftp.FTP
+	var err error
+
+	if ftp, err = goftp.Connect(fmt.Sprintf("%s:%d", host, port)); err != nil {
+		return nil, err
+	}
+
+	if err = ftp.Login(login, password); err != nil {
+		return nil, err
+	}
+
+	return ftp, nil
+}
+
+func FTPUpload(port int, host, login, password, pathToFile, pathToRemoteFile string) error {
+	ftp, err := prepareFTPConn(port, host, login, password)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Open(pathToFile)
+	if err != nil {
+		return err
+	}
+
+	if err = ftp.Stor(pathToRemoteFile, file); err != nil {
+		return err
+	}
+
+	return ftp.Quit()
+}
+
+func FTPDownload(port int, host, login, password, pathToRemoteFile, pathToFile string) error {
+	ftp, err := prepareFTPConn(port, host, login, password)
+	if err != nil {
+		return err
+	}
+
+	_, err = ftp.Retr(pathToRemoteFile, func(r io.Reader) error {
+		file, _err := os.Create(pathToFile)
+		if _err != nil {
+			return _err
+		}
+
+		if _, _err = io.Copy(file, r); _err != nil {
+			return _err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ftp.Quit()
+}
+
 /*
 func ErrString(err error) (s *string) {
 	if err != nil {

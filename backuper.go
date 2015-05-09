@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"encoding/json"
+	"strconv"
 
 	"github.com/codegangsta/cli"
 	"github.com/headmade/backuper/agent"
@@ -123,6 +125,36 @@ func backupAction(c *cli.Context) {
 	}
 }
 
+func listAction(c *cli.Context) {
+	conf, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !conf.Local {
+		cl, err := client.NewClient(BackendAddr())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var blist []backuper.BackupResult
+		if err = cl.GetBackupsList(&blist); err != nil {
+			log.Fatal(err)
+		}
+
+		tail, err := strconv.Atoi(c.Args()[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		r, err := json.MarshalIndent(blist[:tail], "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(r))
+	}
+}
+
 func main() {
 	/*
 		// test crash debug info
@@ -155,6 +187,11 @@ func main() {
 			Name:   "check",
 			Usage:  "Check if backup config changed",
 			Action: checkAction,
+		},
+		{
+			Name: "list",
+			Usage: "Print list of backups [TAIL]",
+			Action: listAction,
 		},
 		{
 			Name:      "provider",

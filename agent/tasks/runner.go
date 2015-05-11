@@ -308,7 +308,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 
 	backupResult.Upload = backuper.UploadResult{
 		Err: err.Error(),
-		Path: backupFilePath,
+		Path: backupFilePath + ".tar.gz.encrypted",
 		Type: "S3",
 		Destination: "headmade",
 		BeginTime: beginTime,

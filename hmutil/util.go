@@ -207,30 +207,32 @@ func UploadToS3(k s3gof3r.Keys, bucketName string, pathToFile string) error {
 	return nil
 }
 
-func DownloadFromS3(k s3gof3r.Keys, bucketName, filename, outputDirPath string) error {
+func DownloadFromS3(k s3gof3r.Keys, bucketName, filename string) (bytes.Buffer, error) {
 	s3 := s3gof3r.New("", k)
 	b := s3.Bucket(bucketName)
 
 	r, _, err := b.GetReader(filename, nil)
 	if err != nil {
-		return err
+		return bytes.Buffer{}, err
 	}
 
-	outputFile, err := os.Create(filepath.Join(outputDirPath, filename))
-	if err != nil {
-		return err
-	}
+	// outputFile, err := os.Create(filepath.Join(outputDirPath, filename))
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if _, err = io.Copy(outputFile, r); err != nil {
-		return err
+	var output bytes.Buffer
+
+	if _, err = io.Copy(&output, r); err != nil {
+		return bytes.Buffer{}, err
 	}
 
 	err = r.Close()
 	if err != nil {
-		return err
+		return bytes.Buffer{}, err
 	}
 
-	return nil
+	return output, nil
 }
 
 func SSHUploader(port int, id_rsa, host, user, srcFile, dstFile string) *scp.SecureCopier {
@@ -241,10 +243,10 @@ func SSHDownloader(port int, id_rsa, host, user, srcFile, dstFile string) *scp.S
 	return scp.NewSecureCopier(port, false, false, false, true, false, false, id_rsa, host, user, srcFile, "", "", dstFile)
 }
 
-func SSHExec(ssh *scp.SecureCopier) error {
-	var o, e bytes.Buffer
-	err, _ := ssh.Exec(nil, &o, &e)
-	return err
+func SSHExec(ssh *scp.SecureCopier) (bytes.Buffer, error) {
+	var o, e, result bytes.Buffer
+	err, _ := ssh.Exec(nil, &o, &e, &result)
+	return result, err
 }
 
 func prepareFTPConn(port int, host, login, password string) (*goftp.FTP, error) {
@@ -280,19 +282,21 @@ func FTPUpload(port int, host, login, password, pathToFile, pathToRemoteFile str
 	return ftp.Quit()
 }
 
-func FTPDownload(port int, host, login, password, pathToRemoteFile, pathToFile string) error {
+func FTPDownload(port int, host, login, password, pathToRemoteFile string) (bytes.Buffer, error) {
 	ftp, err := prepareFTPConn(port, host, login, password)
 	if err != nil {
-		return err
+		return bytes.Buffer{}, err
 	}
 
-	_, err = ftp.Retr(pathToRemoteFile, func(r io.Reader) error {
-		file, _err := os.Create(pathToFile)
-		if _err != nil {
-			return _err
-		}
+	var buffer bytes.Buffer
 
-		if _, _err = io.Copy(file, r); _err != nil {
+	_, err = ftp.Retr(pathToRemoteFile, func(r io.Reader) error {
+		// file, _err := os.Create(pathToFile)
+		// if _err != nil {
+		// 	return _err
+		// }
+
+		if _, _err := io.Copy(&buffer, r); _err != nil {
 			return _err
 		}
 
@@ -300,10 +304,33 @@ func FTPDownload(port int, host, login, password, pathToRemoteFile, pathToFile s
 	})
 
 	if err != nil {
-		return err
+		return bytes.Buffer{}, err
 	}
 
-	return ftp.Quit()
+	if err = ftp.Quit(); err != nil {
+		return buffer, err
+	}
+
+	return buffer, nil
+}
+
+func Decode(buffer *bytes.Buffer, key []byte) (bytes.Buffer, error) {
+	block, err := aes.NewCipher(key)
+  if err != nil {
+    return bytes.Buffer{}, err
+  }
+
+  var iv [aes.BlockSize]byte
+  stream := cipher.NewOFB(block, iv[:])
+
+  var outbuffer bytes.Buffer
+  reader := &cipher.StreamReader{S: stream, R: buffer}
+
+  if _, err = io.Copy(&outbuffer, reader); err != nil {
+    return bytes.Buffer{}, err
+  }
+
+  return outbuffer, nil
 }
 
 /*

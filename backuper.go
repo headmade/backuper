@@ -7,6 +7,7 @@ import (
 	"os"
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/headmade/backuper/agent"
@@ -14,6 +15,7 @@ import (
 	"github.com/headmade/backuper/client"
 	"github.com/headmade/backuper/config"
 	"github.com/headmade/backuper/schedule"
+	"github.com/headmade/backuper/hmutil"
 )
 
 const (
@@ -155,6 +157,59 @@ func listAction(c *cli.Context) {
 	}
 }
 
+func retrieveAction(c *cli.Context) {
+	conf, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !conf.Local {
+		cl, err := client.NewClient(BackendAddr())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var backup backuper.BackupResult
+		id, err := strconv.Atoi(c.Args()[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = cl.GetBackup(backup, id); err != nil {
+			log.Fatal(err)
+		}
+
+		switch backup.UploadResult.Type {
+		case "SSH":
+			user, address := strings.Split(backup.UploadResult.Destination, "@")
+			ssh := hmutil.SSHDownloader(22, c.Args()[2], address, user, backup.UploadResult.Path, c.Args()[1])
+			if err := hmutil.SSHExec(ssh); err != nil {
+				log.Fatal(err)
+			}
+		case "FTP":
+			password := ""
+			login, host := strings.Split(backup.UploadResult.Destination, "@")
+			if err := hmutil.FTPDownload(21, host, login, password, backup.UploadResult.Path, c.Args()[1]); err != nil {
+				log.Fatal(err)
+			}
+		case "S3":
+			err := hmutil.DownloadFromS3(
+				s3gof3r.Keys{
+					conf.Secret["AWS"]["AWS_ACCESS_KEY_ID"], 
+					conf.Secret["AWS"]["AWS_SECRET_ACCESS_KEY"],
+				},
+				backup.UploadResult.Destination,
+				backup.UploadResult.Path,
+				c.Args()[2],
+			)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+}
+
 func main() {
 	/*
 		// test crash debug info
@@ -192,6 +247,11 @@ func main() {
 			Name: "list",
 			Usage: "Print list of backups [TAIL]",
 			Action: listAction,
+		},
+		{
+			Name: "retrieve",
+			Usage: "Download backup [ID PATH [ID_RSA]]",
+			Action: retrieveAction,
 		},
 		{
 			Name:      "provider",

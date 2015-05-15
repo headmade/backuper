@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"path/filepath"
 
+	"github.com/rlmcpherson/s3gof3r"
 	"github.com/codegangsta/cli"
 	"github.com/headmade/backuper/agent"
 	"github.com/headmade/backuper/backuper"
@@ -26,7 +28,8 @@ const (
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
-		backend = "https://gobackuper.com/v1"
+		// backend = "https://gobackuper.com/v1"
+		backend = "http://localhost:3000/v1"
 	}
 	return backend
 }
@@ -175,35 +178,80 @@ func retrieveAction(c *cli.Context) {
 			log.Fatal(err)
 		}
 
-		if err = cl.GetBackup(backup, id); err != nil {
+		if err = cl.GetBackup(&backup, id); err != nil {
 			log.Fatal(err)
 		}
 
-		switch backup.UploadResult.Type {
-		case "SSH":
-			user, address := strings.Split(backup.UploadResult.Destination, "@")
-			ssh := hmutil.SSHDownloader(22, c.Args()[2], address, user, backup.UploadResult.Path, c.Args()[1])
-			if err := hmutil.SSHExec(ssh); err != nil {
+		fmt.Println(backup.Upload)
+
+		_, name := filepath.Split(backup.Upload.Path)
+		name = strings.Split(name, ".encrypted")[0]
+		switch backup.Upload.Type {
+		case "ssh":
+			addr := strings.Split(backup.Upload.Destination, "@")
+			login, host := addr[0], addr[1]
+			ssh := hmutil.SSHDownloader(
+				22,
+				conf.Secret["SSH"]["id_rsa"],
+				host,
+				login,
+				backup.Upload.Path,
+				conf.Secret["SSH"]["download_path"],
+			)
+			result, err := hmutil.SSHExec(ssh);
+
+			if err != nil {
 				log.Fatal(err)
 			}
-		case "FTP":
-			password := ""
-			login, host := strings.Split(backup.UploadResult.Destination, "@")
-			if err := hmutil.FTPDownload(21, host, login, password, backup.UploadResult.Path, c.Args()[1]); err != nil {
+
+			decoded_result, err := hmutil.Decode(&result, []byte(conf.Secret["encryption"]["pass"]))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if err = hmutil.WriteToFile(conf.Secret["SSH"]["download_path"] + name, decoded_result); err != nil {
+				log.Fatal(err)
+			}
+		case "ftp":
+			addr := strings.Split(backup.Upload.Destination, "@")
+			login, host := addr[0], addr[1]
+			result, err := hmutil.FTPDownload(21, host, login, conf.Secret["FTP"]["passw"], backup.Upload.Path)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			decoded_result, err := hmutil.Decode(&result, []byte(conf.Secret["encryption"]["pass"]))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if err = hmutil.WriteToFile(conf.Secret["FTP"]["download_path"] + name, decoded_result); err != nil {
 				log.Fatal(err)
 			}
 		case "S3":
-			err := hmutil.DownloadFromS3(
+			result, err := hmutil.DownloadFromS3(
 				s3gof3r.Keys{
-					conf.Secret["AWS"]["AWS_ACCESS_KEY_ID"], 
-					conf.Secret["AWS"]["AWS_SECRET_ACCESS_KEY"],
+					AccessKey: conf.Secret["AWS"]["AWS_ACCESS_KEY_ID"], 
+					SecretKey: conf.Secret["AWS"]["AWS_SECRET_ACCESS_KEY"],
 				},
-				backup.UploadResult.Destination,
-				backup.UploadResult.Path,
-				c.Args()[2],
+				backup.Upload.Destination,
+				backup.Upload.Path,
 			)
 
 			if err != nil {
+				log.Fatal(err)
+			}
+
+			decoded_result, err := hmutil.Decode(&result, []byte(conf.Secret["encryption"]["pass"]))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if err = hmutil.WriteToFile(conf.Secret["AWS"]["download_path"] + name, decoded_result); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -235,7 +283,7 @@ func main() {
 		},
 		{
 			Name:   "backup",
-			Usage:  "Perform a backup",
+			Usage:  "Perform a backup [METHOD]",
 			Action: backupAction,
 		},
 		{
@@ -249,7 +297,7 @@ func main() {
 			Action: listAction,
 		},
 		{
-			Name: "retrieve",
+			Name: "get",
 			Usage: "Download backup [ID PATH [ID_RSA]]",
 			Action: retrieveAction,
 		},

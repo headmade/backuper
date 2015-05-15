@@ -18,6 +18,7 @@ type AgentConfig struct {
 	TmpDir      string       `json:"tmp_dir"`
 	Tasks       []TaskConfig `json:"tasks"`
 	Period      Period       `json:"period"`
+	UploadMethod string      `json:"upload_method"`
 }
 
 type ClientConfig struct {

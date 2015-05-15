@@ -82,5 +82,5 @@ func (client *Client) GetBackupsList(brs *[]backuper.BackupResult) error {
 }
 
 func (client *Client) GetBackup(backup *backuper.BackupResult, id int) error {
-	return client.request("GET", "GetBackup", backup, id)
+	return client.request("GET", fmt.Sprintf("GetBackup/%d.json", id), backup)
 }

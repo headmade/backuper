@@ -32,7 +32,7 @@ func before() {
     }(i)
     go func(n int) {
       f2, _ := os.Create(testDirPath + "2/" + strconv.Itoa(n) + ".txt")
-      f2.Write([]byte("aiudo isudipus disdhpius dsuijdhap isjbdhaiw uhdpa uoshdap usodhai sjdbaishdb"))
+      f2.Write([]byte("ipaushdo isudipus disdhpius dsuijdhap isjbdhaiw uhdpa uoshdap usodhai sjdbaishdb"))
       f2.Close()
       wg.Done()
     }(i)
@@ -47,10 +47,10 @@ func after() {
 func TestTarGZ(t *testing.T) {
   wg.Add(10)
   before()
-  _err := PackAndCompress(testDirPath,[]string{"*"}, testDirPath + "result.tar.gz", []byte("qqqqwwwweeeensdu"), true)
+  _err := PackAndCompress(testDirPath,[]string{"*"}, []string{"2"}, testDirPath + "result.tar.gz", []byte("qqqqwwwweeeensdu"), false)
   if _err != nil {
     t.Error(_err)
   }
-  after()
+  // after()
   wg.Wait()
 }

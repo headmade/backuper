@@ -32,7 +32,26 @@ func ReplaceVars(str string, replacements map[string]string) string {
 	return str
 }
 
-func Tar(dir string, files []string, tw *tar.Writer, prevdir string) error {
+func find(arr []string, elem string) int {
+	for i, e := range arr {
+		if e == elem {
+			return i
+		}
+	}
+	return -1
+}
+
+func removeFromSlice(arr []string, elem string) []string {
+	index := find(arr, elem)
+
+	if index == -1 {
+		return arr
+	} else {
+		return append(arr[:index], arr[index+1:]...)
+	}
+}
+
+func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir string) error {
 	if len(files) == 1 && files[0] == "*" {
 		files = []string{}
 		d, _err := ioutil.ReadDir(dir)
@@ -46,6 +65,11 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) error {
 		}
 	}
 
+	for _, e := range excludeFiles {
+		fmt.Println(e)
+		files = removeFromSlice(files, e)
+	}
+
 	for _, file := range files {
 		f, _err := os.Open(filepath.Join(dir, file))
 		if _err != nil {
@@ -55,7 +79,7 @@ func Tar(dir string, files []string, tw *tar.Writer, prevdir string) error {
 		s, _err := f.Stat()
 
 		if s.IsDir() {
-			Tar(filepath.Join(dir, file), []string{"*"}, tw, file)
+			Tar(filepath.Join(dir, file), []string{"*"}, []string{}, tw, file)
 		} else {
 			if _err != nil {
 				return _err
@@ -140,7 +164,7 @@ func WriteToFile(path string, buffer bytes.Buffer) error {
 	return nil
 }
 
-func PackAndCompress(dir string, files []string, outputFile string, key []byte, encrypt bool) error {
+func PackAndCompress(dir string, files, excludeFiles []string, outputFile string, key []byte, encrypt bool) error {
 	outdir, _ := filepath.Split(outputFile)
 	_err := os.MkdirAll(outdir, 0777)
 	if _err != nil {
@@ -150,7 +174,7 @@ func PackAndCompress(dir string, files []string, outputFile string, key []byte, 
 	var tarFile bytes.Buffer
 
 	tarWriter := tar.NewWriter(&tarFile)
-	_err = Tar(dir, files, tarWriter, "")
+	_err = Tar(dir, files, excludeFiles, tarWriter, "")
 
 	if _err != nil {
 		return _err

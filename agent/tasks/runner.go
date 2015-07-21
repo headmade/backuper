@@ -110,6 +110,7 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 	hmutil.PackAndCompress(
 		runner.tmpDirPath(),
 		tmpFiles,
+		[]string{},
 		backupFilePath + ".tar.gz",
 		[]byte((*runner.secretConfig)["encryption"]["pass"]),
 		true,

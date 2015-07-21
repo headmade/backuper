@@ -32,26 +32,41 @@ func ReplaceVars(str string, replacements map[string]string) string {
 	return str
 }
 
-func find(arr []string, elem string) int {
+func find(prefix string, arr []string, elem string) int {
 	for i, e := range arr {
-		if e == elem {
+		if filepath.Join(prefix, e) == elem {
 			return i
 		}
 	}
 	return -1
 }
 
-func removeFromSlice(arr []string, elem string) []string {
-	index := find(arr, elem)
+func removeFromSlice(prefix string, arr []string, elem string) ([]string, bool) {
+	index := find(prefix, arr, elem)
 
 	if index == -1 {
-		return arr
+		return arr, false
 	} else {
-		return append(arr[:index], arr[index+1:]...)
+		return append(arr[:index], arr[index+1:]...), true
 	}
 }
 
-func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir string) error {
+func removeExcludedFiles(dir string, files, excludeFiles []string) {
+	var changed bool
+	var deleted []string = []string{}
+
+	for _, e := range excludeFiles {
+		files, changed = removeFromSlice(dir, files, e)
+		if changed {
+			deleted = append(deleted, e)
+		}
+	}
+	for _, e := range deleted {
+		removeFromSlice("", excludeFiles, e)
+	}
+}
+
+func Tar(dir string, files, excludeFiles []string, tw *tar.Writer) error {
 	if len(files) == 1 && files[0] == "*" {
 		files = []string{}
 		d, _err := ioutil.ReadDir(dir)
@@ -65,10 +80,13 @@ func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir strin
 		}
 	}
 
-	for _, e := range excludeFiles {
-		fmt.Println(e)
-		files = removeFromSlice(files, e)
-	}
+	// for _, e := range excludeFiles {
+	// 	fmt.Println(filpath.Join(dir, e))
+	// 	files = removeFromSlice(files, e)
+	// 	excludeFiles = removeFromSlice(excludeFiles, e)
+	// }
+
+	removeExcludedFiles(dir, files, excludeFiles)
 
 	for _, file := range files {
 		f, _err := os.Open(filepath.Join(dir, file))
@@ -79,14 +97,14 @@ func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir strin
 		s, _err := f.Stat()
 
 		if s.IsDir() {
-			Tar(filepath.Join(dir, file), []string{"*"}, []string{}, tw, file)
+			Tar(filepath.Join(dir, file), []string{"*"}, excludeFiles, tw)
 		} else {
 			if _err != nil {
 				return _err
 			}
 
 			header := &tar.Header{
-				Name: filepath.Join(prevdir, s.Name()),
+				Name: filepath.Join(dir, s.Name()),
 				Size: s.Size(),
 				Mode: 0777,
 			}
@@ -174,7 +192,7 @@ func PackAndCompress(dir string, files, excludeFiles []string, outputFile string
 	var tarFile bytes.Buffer
 
 	tarWriter := tar.NewWriter(&tarFile)
-	_err = Tar(dir, files, excludeFiles, tarWriter, "")
+	_err = Tar(dir, files, excludeFiles, tarWriter)
 
 	if _err != nil {
 		return _err

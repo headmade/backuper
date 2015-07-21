@@ -28,8 +28,8 @@ const (
 func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
-		// backend = "https://gobackuper.com/v1"
-		backend = "http://localhost:3000/v1"
+		backend = "https://gobackuper.com/v1"
+		// backend = "http://localhost:3000/v1"
 	}
 	return backend
 }

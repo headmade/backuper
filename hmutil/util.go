@@ -16,7 +16,7 @@ import (
 	"archive/tar"
 
 	"github.com/rlmcpherson/s3gof3r"
-	"github.com/laher/scp-go/scp"
+	"github.com/Twizty/scp-go/scp"
 	"github.com/dutchcoders/goftp"
 )
 

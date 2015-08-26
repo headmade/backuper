@@ -133,7 +133,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (
 			ftpProvider["user"], 
 			ftpProvider["passw"],
 			backupFilePath + ".tar.gz.encrypted",
-			"/Users/twizty/Desktop/ftp_tmp/" + name, // fix it
+			ftpProvider["upload_path"] + name, // fix it
 		)
 
 		if err == nil {
@@ -144,7 +144,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (
 
 		return backuper.UploadResult{
 			Err: errMsg,
-			Path: "/Users/twizty/Desktop/ftp_tmp/" + name,
+			Path: ftpProvider["upload_path"] + name,
 			Type: "ftp",
 			Destination: ftpProvider["user"] + "@" + ftpProvider["host"],
 			BeginTime: beginTime,
@@ -160,7 +160,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (
 			sshProvider["host"], 
 			sshProvider["user"],
 			backupFilePath + ".tar.gz.encrypted",
-			"/Users/twizty/Desktop/ssh_tmp/" , // fix it
+			sshProvider["upload_path"],
 		))
 
 		if err == nil {
@@ -171,7 +171,7 @@ func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (
 
 		return backuper.UploadResult{
 			Err: errMsg,
-			Path: "/Users/twizty/Desktop/ssh_tmp/" + name,
+			Path: sshProvider["upload_path"] + name,
 			Type: "SSH",
 			Destination: sshProvider["user"] + "@" + sshProvider["host"],
 			BeginTime: beginTime,

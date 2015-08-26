@@ -66,7 +66,7 @@ func removeExcludedFiles(dir string, files, excludeFiles []string) {
 	}
 }
 
-func Tar(dir string, files, excludeFiles []string, tw *tar.Writer) error {
+func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir string) error {
 	if len(files) == 1 && files[0] == "*" {
 		files = []string{}
 		d, _err := ioutil.ReadDir(dir)
@@ -97,14 +97,14 @@ func Tar(dir string, files, excludeFiles []string, tw *tar.Writer) error {
 		s, _err := f.Stat()
 
 		if s.IsDir() {
-			Tar(filepath.Join(dir, file), []string{"*"}, excludeFiles, tw)
+			Tar(filepath.Join(dir, file), []string{"*"}, excludeFiles, tw, filepath.Join(prevdir, file))
 		} else {
 			if _err != nil {
 				return _err
 			}
 
 			header := &tar.Header{
-				Name: filepath.Join(dir, s.Name()),
+				Name: filepath.Join(prevdir, s.Name()),
 				Size: s.Size(),
 				Mode: 0777,
 			}
@@ -192,7 +192,7 @@ func PackAndCompress(dir string, files, excludeFiles []string, outputFile string
 	var tarFile bytes.Buffer
 
 	tarWriter := tar.NewWriter(&tarFile)
-	_err = Tar(dir, files, excludeFiles, tarWriter)
+	_err = Tar(dir, files, excludeFiles, tarWriter, "")
 
 	if _err != nil {
 		return _err

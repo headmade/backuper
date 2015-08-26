@@ -76,3 +76,11 @@ func (client *Client) GetConfig(o interface{}) error {
 	err := client.request("GET", "GetConfig", o)
 	return err
 }
+
+func (client *Client) GetBackupsList(brs *[]backuper.BackupResult) error {
+	return client.request("GET", "GetBackups", brs)
+}
+
+func (client *Client) GetBackup(backup *backuper.BackupResult, id int) error {
+	return client.request("GET", fmt.Sprintf("GetBackup/%d.json", id), backup)
+}

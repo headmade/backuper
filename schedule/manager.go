@@ -6,7 +6,7 @@ import (
 //	"strconv"
 
 	"github.com/headmade/backuper/backuper"
-	"github.com/headmade/backuper/hmutil"
+	// "github.com/headmade/backuper/hmutil"
 )
 
 const (
@@ -42,11 +42,11 @@ func periodToStr(period *backuper.Period) string {
 	return str
 }
 
-func (m *Manager) writeCrontab(schedule string, cmd string) error {
-	taskFormat := `crontab -l\
-		| ( grep -v 'gobackuper %s' ; echo '%s %s %s gobackuper %s >> /var/log/gobackuper_cron.log 2>&1' )\
-		| crontab`
-	task := fmt.Sprintf(taskFormat, cmd, schedule, CRON_PATH, CRON_GOTRACEBACK, cmd)
-	_, err := hmutil.System(task)
-	return err
-}
+// func (m *Manager) writeCrontab(schedule string, cmd string) error {
+// 	taskFormat := `crontab -l\
+// 		| ( grep -v 'gobackuper %s' ; echo '%s %s %s gobackuper %s >> /var/log/gobackuper_cron.log 2>&1' )\
+// 		| crontab`
+// 	task := fmt.Sprintf(taskFormat, cmd, schedule, CRON_PATH, CRON_GOTRACEBACK, cmd)
+// 	_, err := hmutil.System(task)
+// 	return err
+// }

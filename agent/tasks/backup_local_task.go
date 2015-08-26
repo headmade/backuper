@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/hmutil"
 	"os"
@@ -44,6 +44,16 @@ func (localTask *backupLocalTask) sourcePath() string {
 	return localTask.config.Params["path"]
 }
 
+func (localTask *backupLocalTask) excludePath() []string {
+	filenames := strings.Split(localTask.config.Params["exclude_path"], ", ")
+
+	for i, e := range filenames {
+		filenames[i] = filepath.Join(localTask.sourcePath(), e)
+	}
+
+	return filenames
+}
+
 func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []byte, err error) {
 
 	file, err := os.Open(localTask.sourcePath())
@@ -55,15 +65,25 @@ func (localTask *backupLocalTask) GenerateTmpFile(tmpFilePath string) (output []
 		return
 	}
 
-	cmd := fmt.Sprintf(
-		"tar -cf - %s -C %s %s >%s",
-		localTask.compressionFlag(),
-		localTask.pathParentDir,
-		localTask.pathBaseName,
-		tmpFilePath,
-	)
+	// cmd := fmt.Sprintf(
+	// 	"tar -cf - %s -C %s %s >%s",
+	// 	localTask.compressionFlag(),
+	// 	localTask.pathParentDir,
+	// 	localTask.pathBaseName,
+	// 	tmpFilePath,
+	// )
 
-	return hmutil.System(cmd)
+	// return hmutil.System(cmd)
+
+	err = hmutil.PackAndCompress(
+		localTask.pathParentDir,
+		[]string{localTask.pathBaseName},
+		localTask.excludePath(),
+		tmpFilePath,
+		[]byte{},
+		false,
+	)
+	return []byte{}, err
 }
 
 func (localTask *backupLocalTask) compressionFlag() (cf string) {

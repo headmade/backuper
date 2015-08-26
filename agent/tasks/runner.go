@@ -13,6 +13,7 @@ import (
 	"github.com/headmade/backuper/config"
 	"github.com/headmade/backuper/hmutil"
 	"github.com/nightlyone/lockfile"
+	"github.com/rlmcpherson/s3gof3r"
 )
 
 type Runner struct {
@@ -31,7 +32,7 @@ func NewRunner(config *backuper.AgentConfig, secretConfig *config.Providers) *Ru
 }
 
 func (runner *Runner) tmpDirPath() string {
-	return runner.agentConfig.TmpDir + "/backuper/"
+	return filepath.Join(runner.agentConfig.TmpDir, "backuper")
 }
 
 func (runner *Runner) tmpFilePath(tmpFileName string) string {
@@ -98,31 +99,133 @@ func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) 
 		return []byte{}, errors.New("No files to encrypt")
 	}
 
-	cmd := fmt.Sprintf(
-		"tar -cf - -C %s %s | %s > %s",
-		runner.tmpDirPath(),
-		strings.Join(tmpFiles, " "),
-		EncryptCmd("PASS"),
-		backupFilePath,
-	)
+	// cmd := fmt.Sprintf(
+	// 	"tar -cf - -C %s %s | %s > %s",
+	// 	runner.tmpDirPath(),
+	// 	strings.Join(tmpFiles, " "),
+	// 	EncryptCmd((*runner.secretConfig)["encryption"]["pass"]),
+	// 	backupFilePath,
+	// )
 
-	return hmutil.System(cmd)
+	hmutil.PackAndCompress(
+		runner.tmpDirPath(),
+		tmpFiles,
+		[]string{},
+		backupFilePath + ".tar.gz",
+		[]byte((*runner.secretConfig)["encryption"]["pass"]),
+		true,
+	)
+	return []byte{}, nil
+	//return hmutil.System(cmd)
 }
 
-func (runner *Runner) uploadBackupFile(backupFilePath, bucket, dstPath string) (output []byte, err error) {
+func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (backuper.UploadResult, error) {
+	var errMsg string
+	_, name := filepath.Split(backupFilePath + ".tar.gz.encrypted")
+	beginTime := time.Now()
 
-	awsProvider := (*runner.secretConfig)["AWS"]
+	switch method {
+	case "ftp":
+		ftpProvider := (*runner.secretConfig)["FTP"]
+		err := hmutil.FTPUpload(
+			21, 
+			ftpProvider["host"], 
+			ftpProvider["user"], 
+			ftpProvider["passw"],
+			backupFilePath + ".tar.gz.encrypted",
+			ftpProvider["upload_path"] + name, // fix it
+		)
 
-	cmd := fmt.Sprintf(
-		"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
-		awsProvider["AWS_ACCESS_KEY_ID"],
-		awsProvider["AWS_SECRET_ACCESS_KEY"],
-		backupFilePath,
-		bucket,
-		runner.formatDstPath(dstPath),
-	)
+		if err == nil {
+			errMsg = ""
+		} else {
+			errMsg = err.Error()
+		}
 
-	return hmutil.System(cmd)
+		return backuper.UploadResult{
+			Err: errMsg,
+			Path: ftpProvider["upload_path"] + name,
+			Type: "ftp",
+			Destination: ftpProvider["user"] + "@" + ftpProvider["host"],
+			BeginTime: beginTime,
+			EndTime: time.Now(),
+		}, err
+
+	case "ssh":
+		sshProvider := (*runner.secretConfig)["SSH"]
+
+		_, err := hmutil.SSHExec(hmutil.SSHUploader(
+			22, 
+			sshProvider["id_rsa"], 
+			sshProvider["host"], 
+			sshProvider["user"],
+			backupFilePath + ".tar.gz.encrypted",
+			sshProvider["upload_path"],
+		))
+
+		if err == nil {
+			errMsg = ""
+		} else {
+			errMsg = err.Error()
+		}
+
+		return backuper.UploadResult{
+			Err: errMsg,
+			Path: sshProvider["upload_path"] + name,
+			Type: "SSH",
+			Destination: sshProvider["user"] + "@" + sshProvider["host"],
+			BeginTime: beginTime,
+			EndTime: time.Now(),
+		}, err
+	case "s3":
+		awsProvider := (*runner.secretConfig)["AWS"]
+		err := hmutil.UploadToS3(
+			s3gof3r.Keys{
+				AccessKey: awsProvider["AWS_ACCESS_KEY_ID"], 
+				SecretKey: awsProvider["AWS_SECRET_ACCESS_KEY"],
+			},
+			"headmade",
+			backupFilePath + ".tar.gz.encrypted",
+		)
+
+		if err == nil {
+			errMsg = ""
+		} else {
+			errMsg = err.Error()
+		}
+
+		return backuper.UploadResult{
+			Err: errMsg,
+			Path: name,
+			Type: "S3",
+			Destination: "headmade",
+			BeginTime: beginTime,
+			EndTime: time.Now(),
+		}, err 
+	default:
+		return backuper.UploadResult{}, errors.New("Unknown method")
+	}
+	
+
+	// cmd := fmt.Sprintf(
+	// 	"AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s gobackuper_gof3r put -p %s -b %s -k %s",
+	// 	awsProvider["AWS_ACCESS_KEY_ID"],
+	// 	awsProvider["AWS_SECRET_ACCESS_KEY"],
+	// 	backupFilePath + ".tar.gz.encrypted",
+	// 	bucket,
+	// 	dstPath + ".tar.gz.encrypted",
+	// 	// runner.formatDstPath(dstPath),
+	// )
+
+	// return hmutil.System(cmd)
+	// return nil, hmutil.UploadToS3(
+	// 	s3gof3r.Keys{
+	// 		AccessKey: awsProvider["AWS_ACCESS_KEY_ID"], 
+	// 		SecretKey: awsProvider["AWS_SECRET_ACCESS_KEY"],
+	// 	},
+	// 	"headmade",
+	// 	backupFilePath + ".tar.gz.encrypted",
+	// )
 }
 
 func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backuper.PathResult) {
@@ -194,7 +297,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 			&backupResult.Prepare,
 			&backupResult.Lock,
 			&backupResult.Encrypt,
-			&backupResult.Upload,
+			// &backupResult.Upload,
 		}
 
 		backupResult.Status = backuper.BackupErrorNo
@@ -276,18 +379,32 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 		backupResult.Size = fi.Size()
 	}
 
-	beginTime = time.Now()
-	output, err = runner.uploadBackupFile(backupFilePath, "headmade", "backup/%hostname%/%timestamp%")
-	backupResult.Upload = backuper.NewPathResult(
-		err,
-		backupFilePath,
-		string(output),
-		beginTime,
-		time.Now(),
+	// dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
+	dstPath := runner.formatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"))
+	uploadResults, err := runner.uploadBackupFile(
+		backupFilePath, runner.agentConfig.UploadMethod, dstPath,
 	)
+	// backupResult.Upload = backuper.NewPathResult(
+	// 	err,
+	// 	backupFilePath,
+	// 	string(output),
+	// 	beginTime,
+	// 	time.Now(),
+	// )
+
+	backupResult.Upload = uploadResults
+	// backuper.UploadResult{
+	// 	Err: err.Error(), // next line fixes this
+	// 	// Err: "",
+	// 	Path: backupFilePath + ".tar.gz.encrypted",
+	// 	Type: "S3",
+	// 	Destination: "headmade",
+	// 	BeginTime: beginTime,
+	// 	EndTime: time.Now(),
+	// }
 
 	if err != nil {
-		log.Println("ERR: upload:", err.Error(), string(output))
+		log.Println("ERR: upload:", err.Error())
 		return
 	}
 

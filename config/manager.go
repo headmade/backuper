@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
-
+	// "runtime"
+	// "path/filepath"
 	"github.com/headmade/backuper/backuper"
 )
 
@@ -22,10 +23,14 @@ func New() (*Config, error) {
 	return config, err
 }
 
-func configPath() string {
-	//return "/etc/backuper/agent.json"
-	return "/tmp/backuper.json"
-}
+// func configPath() string {
+// 	if runtime.GOOS == "windows" { 
+// 		return filepath.Join("C:", "gobackuper", "agent.json")
+// 	} else { 
+// 		return filepath.Join("/", "etc", "gobackuper", "agent.json")
+// 	}
+// 	// return "/tmp/backuper.json"
+// }
 
 func (c *Config) Write(value interface{}) error {
 

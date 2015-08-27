@@ -93,7 +93,7 @@ func Tar(dir string, files, excludeFiles []string, tw *tar.Writer, prevdir strin
 		if _err != nil {
 			continue
 		}
-
+		defer f.Close()
 		s, _err := f.Stat()
 
 		if s.IsDir() {

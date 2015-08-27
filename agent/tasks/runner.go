@@ -124,6 +124,10 @@ func (runner *Runner) uploadBackupFile(backupFilePath, method, dstPath string) (
 	_, name := filepath.Split(backupFilePath + ".tar.gz.encrypted")
 	beginTime := time.Now()
 
+	if method == "" {
+		method = "s3"
+	}
+
 	switch method {
 	case "ftp":
 		ftpProvider := (*runner.secretConfig)["FTP"]

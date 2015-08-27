@@ -237,7 +237,6 @@ func (runner *Runner) runTasks(configs *[]backuper.TaskConfig) (results []backup
 	results = make([]backuper.PathResult, 0, len(*configs))
 
 	for _, config := range *configs {
-		log.Println(config)
 		beginTime := time.Now()
 		task, err := GetTask(&config)
 		if err == nil {

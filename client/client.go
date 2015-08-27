@@ -64,6 +64,9 @@ func InitServer(backendAddr, token string) (err error) {
 
 func NewClient(backendAddr string) (*Client, error) {
 	conf, err := config.New()
+	if err != nil {
+		return nil, err
+	}
 	return &Client{backendAddr, conf.Client.Token}, err
 }
 

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
+	"os"
 	// "runtime"
-	// "path/filepath"
+	"path/filepath"
 	"github.com/headmade/backuper/backuper"
 )
 
@@ -65,5 +66,21 @@ func WriteConfig(c *Config) error {
 	if err != nil {
 		return err
 	}
+	filename := configPath()
+
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		dir, _ := filepath.Split(filename)
+		os.MkdirAll(dir, 0644)
+
+		f, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = f.Write(data)
+		return err
+	}
+
 	return ioutil.WriteFile(configPath(), data, 0644)
 }

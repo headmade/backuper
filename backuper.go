@@ -1,23 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os"
-	"encoding/json"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
 
-	"github.com/rlmcpherson/s3gof3r"
 	"github.com/codegangsta/cli"
 	"github.com/headmade/backuper/agent"
 	"github.com/headmade/backuper/backuper"
 	"github.com/headmade/backuper/client"
 	"github.com/headmade/backuper/config"
-	"github.com/headmade/backuper/schedule"
 	"github.com/headmade/backuper/hmutil"
+	"github.com/headmade/backuper/schedule"
+	"github.com/rlmcpherson/s3gof3r"
 )
 
 const (
@@ -29,7 +29,6 @@ func BackendAddr() string {
 	backend := os.Getenv("BACKEND")
 	if backend == "" {
 		backend = "https://gobackuper.com/v1"
-		// backend = "http://localhost:3000/v1"
 	}
 	return backend
 }
@@ -44,7 +43,7 @@ func initServer(c *cli.Context) error {
 }
 
 func checkUID(commandName string) {
-	if false { //os.Getuid() != 0 {
+	if os.Getuid() != 0 {
 		fmt.Printf("FAILED! Are you root? Please, run `sudo rollbackup %s [ARGS]`\n", commandName)
 		os.Exit(0)
 	}
@@ -198,7 +197,7 @@ func retrieveAction(c *cli.Context) {
 				backup.Upload.Path,
 				conf.Secret["SSH"]["download_path"],
 			)
-			result, err := hmutil.SSHExec(ssh);
+			result, err := hmutil.SSHExec(ssh)
 
 			if err != nil {
 				log.Fatal(err)
@@ -210,7 +209,7 @@ func retrieveAction(c *cli.Context) {
 				log.Fatal(err)
 			}
 
-			if err = hmutil.WriteToFile(conf.Secret["SSH"]["download_path"] + name, decoded_result); err != nil {
+			if err = hmutil.WriteToFile(conf.Secret["SSH"]["download_path"]+name, decoded_result); err != nil {
 				log.Fatal(err)
 			}
 		case "ftp":
@@ -228,13 +227,13 @@ func retrieveAction(c *cli.Context) {
 				log.Fatal(err)
 			}
 
-			if err = hmutil.WriteToFile(conf.Secret["FTP"]["download_path"] + name, decoded_result); err != nil {
+			if err = hmutil.WriteToFile(conf.Secret["FTP"]["download_path"]+name, decoded_result); err != nil {
 				log.Fatal(err)
 			}
 		case "S3":
 			result, err := hmutil.DownloadFromS3(
 				s3gof3r.Keys{
-					AccessKey: conf.Secret["AWS"]["AWS_ACCESS_KEY_ID"], 
+					AccessKey: conf.Secret["AWS"]["AWS_ACCESS_KEY_ID"],
 					SecretKey: conf.Secret["AWS"]["AWS_SECRET_ACCESS_KEY"],
 				},
 				backup.Upload.Destination,
@@ -251,7 +250,7 @@ func retrieveAction(c *cli.Context) {
 				log.Fatal(err)
 			}
 
-			if err = hmutil.WriteToFile(conf.Secret["AWS"]["download_path"] + name, decoded_result); err != nil {
+			if err = hmutil.WriteToFile(conf.Secret["AWS"]["download_path"]+name, decoded_result); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -292,13 +291,13 @@ func main() {
 			Action: checkAction,
 		},
 		{
-			Name: "list",
-			Usage: "Print list of backups [TAIL]",
+			Name:   "list",
+			Usage:  "Print list of backups [TAIL]",
 			Action: listAction,
 		},
 		{
-			Name: "get",
-			Usage: "Download backup [ID PATH [ID_RSA]]",
+			Name:   "get",
+			Usage:  "Download backup [ID PATH [ID_RSA]]",
 			Action: retrieveAction,
 		},
 		{

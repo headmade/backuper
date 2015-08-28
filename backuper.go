@@ -305,19 +305,19 @@ func main() {
 			Name:      "provider",
 			ShortName: "p",
 			Usage:     "Add provider params",
-			//Action:    ProviderAction,
+			Action:    providerAction,
 			Subcommands: []cli.Command{
 				{
 					Name:      "AWS",
 					ShortName: "aws",
 					Usage:     "AWS [AWS_ACCESS_KEY_ID] [AWS_SECRET_ACCESS_KEY]",
-					// Action:    providerAction,
+					Action:    providerAction,
 				},
 				{
-					Name:      "encrypt",
+					Name:      "encryption",
 					ShortName: "enc",
 					Usage:     "encrypt [PASSWORD]",
-					// Action:    providerAction,
+					Action:    providerAction,
 				},
 			},
 		},

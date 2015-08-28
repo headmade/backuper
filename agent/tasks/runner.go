@@ -68,7 +68,7 @@ func (runner *Runner) CleanupTmpDir() error {
 }
 
 func (runner *Runner) backupFileName() string {
-	return runner.appendTimestamp("backup")
+	return runner.appendTimestamp("")
 }
 
 func (runner *Runner) backupFilePath() string {
@@ -76,22 +76,26 @@ func (runner *Runner) backupFilePath() string {
 }
 
 func (runner *Runner) appendTimestamp(str string) string {
-	return strings.Join([]string{
-		str,
-		runner.timestamp,
-	}, "_")
+	if str == ""{
+		return runner.timestamp
+	} else {
+		return strings.Join([]string{
+			str,
+			runner.timestamp,
+		}, "_")
+	}
 }
 
-func (runner *Runner) formatDstPath(path string) string {
-	hostname, _ := os.Hostname()
-	return hmutil.ReplaceVars(
-		path,
-		map[string]string{
-			"%hostname%":  hostname,
-			"%timestamp%": runner.timestamp,
-		},
-	)
-}
+// func (runner *Runner) formatDstPath(path string) string {
+// 	hostname, _ := os.Hostname()
+// 	return hmutil.ReplaceVars(
+// 		path,
+// 		map[string]string{
+// 			"%hostname%":  hostname,
+// 			"%timestamp%": runner.timestamp,
+// 		},
+// 	)
+// }
 
 func (runner *Runner) encryptTmpFiles(backupFilePath string, tmpFiles []string) (output []byte, err error) {
 
@@ -384,7 +388,7 @@ func (runner *Runner) Run() (err error, backupResult *backuper.BackupResult) {
 	}
 
 	// dstPath := runner.formatDstPath("backup/%hostname%/%timestamp%")
-	dstPath := runner.formatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"))
+	dstPath := hmutil.FormatDstPath(filepath.Join("backup", "%hostname%", "%timestamp%"), runner.timestamp)
 	uploadResults, err := runner.uploadBackupFile(
 		backupFilePath, runner.agentConfig.UploadMethod, dstPath,
 	)

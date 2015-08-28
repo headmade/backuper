@@ -233,7 +233,9 @@ func UploadToS3(k s3gof3r.Keys, bucketName string, pathToFile string) error {
 
 	stats, _ := file.Stat()
 
-	w, err := b.PutWriter(stats.Name(), nil, nil)
+	dstPath := FormatDstPath("/backup/%hostname%/%timestamp%", stats.Name())
+
+	w, err := b.PutWriter(dstPath, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -373,6 +375,17 @@ func Decode(buffer *bytes.Buffer, key []byte) (bytes.Buffer, error) {
   }
 
   return outbuffer, nil
+}
+
+func FormatDstPath(path, timestamp string) string {
+	hostname, _ := os.Hostname()
+	return ReplaceVars(
+		path,
+		map[string]string{
+			"%hostname%":  hostname,
+			"%timestamp%": timestamp,
+		},
+	)
 }
 
 /*
